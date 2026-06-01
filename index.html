@@ -454,7 +454,33 @@ function openSession(id) {
       </div>`;
   } else {
     document.getElementById('m-join-area').innerHTML = `
-      <button class="btn btn-outline" style="width:100%;color:#C0392B;border-color:#C0392B" onclick="deleteSession('${s.id}')">Xóa ca làm việc này</button>`;
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <button class="btn btn-outline" style="flex:1" onclick="toggleEditForm()">✏️ Sửa ca</button>
+        <button class="btn btn-outline" style="flex:1;color:#C0392B;border-color:#C0392B" onclick="deleteSession('${s.id}')">🗑️ Xóa ca</button>
+      </div>
+      <div id="edit-form" style="display:none;flex-direction:column;gap:8px;background:var(--bg);border-radius:8px;padding:12px">
+        <div class="field"><label>Tiêu đề</label><input type="text" id="e-title" value="${s.title}" /></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+          <div class="field"><label>Nhóm</label>
+            <select id="e-group">
+              <option value="1" ${s.group==1?'selected':''}>Nhật Linh</option>
+              <option value="2" ${s.group==2?'selected':''}>Uyên</option>
+              <option value="3" ${s.group==3?'selected':''}>Trang</option>
+              <option value="4" ${s.group==4?'selected':''}>NCS. Tuyền</option>
+            </select>
+          </div>
+          <div class="field"><label>Ngày</label><input type="date" id="e-date" value="${s.date}" /></div>
+          <div class="field"><label>Ca</label>
+            <select id="e-slot">
+              <option value="0" ${s.slot==0?'selected':''}>Sáng</option>
+              <option value="1" ${s.slot==1?'selected':''}>Chiều</option>
+              <option value="2" ${s.slot==2?'selected':''}>Tối</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label>Nội dung</label><textarea id="e-content" style="min-height:60px">${s.content||''}</textarea></div>
+        <button class="btn btn-primary" onclick="saveEdit()">Lưu thay đổi</button>
+      </div>`;
   }
   document.getElementById('modal-bg').classList.add('show');
 }
@@ -509,6 +535,40 @@ async function deleteSession(id) {
     closeModalDirect(); updateStats(); renderGrid();
     showToast('Đã xóa ca làm việc.');
   } catch(e) { showToast('Lỗi!', true); }
+}
+
+function toggleEditForm() {
+  const f = document.getElementById('edit-form');
+  f.style.display = f.style.display === 'flex' ? 'none' : 'flex';
+}
+
+async function saveEdit() {
+  const title = document.getElementById('e-title').value.trim();
+  const group = document.getElementById('e-group').value;
+  const date = document.getElementById('e-date').value;
+  const slot = document.getElementById('e-slot').value;
+  const content = document.getElementById('e-content').value.trim();
+  if (!title) { showToast('Vui lòng nhập tiêu đề!', true); return; }
+  try {
+    const res = await apiCall({ action: 'updateSession', id: activeSession.id, title, group, date, slot, content });
+    if (res.success) {
+      const idx = sessions.findIndex(s => s.id === activeSession.id);
+      if (idx > -1) {
+        sessions[idx] = { ...sessions[idx], title, group: +group, date, slot: +slot, content };
+        activeSession = sessions[idx];
+      }
+      document.getElementById('m-title').textContent = title;
+      const grpCls = GRP_CLS[+group] || 'e-g1';
+      document.getElementById('m-meta').innerHTML = `
+        <span>📅 ${date}</span>
+        <span>⏰ ${SLOTS[+slot]} (${SLOT_TIME[+slot]})</span>
+        <span class="leg-pill ${grpCls}" style="font-size:10px">${GRP[+group]||'Nhóm '+group}</span>`;
+      document.getElementById('m-content').textContent = content || '(Không có mô tả chi tiết)';
+      document.getElementById('edit-form').style.display = 'none';
+      renderGrid();
+      showToast('Đã cập nhật ca làm việc!');
+    } else { showToast('Lỗi: ' + res.error, true); }
+  } catch(e) { showToast('Lỗi kết nối!', true); }
 }
 
 function closeModal(e) { if (e.target === document.getElementById('modal-bg')) closeModalDirect(); }
