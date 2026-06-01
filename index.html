@@ -1,380 +1,83 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lịch Đăng Ký Lên Lab</title>
-<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-<style>
-:root {
-  --g1: #6C5CE7; --g1-light: #EEF0FF;
-  --g2: #00B894; --g2-light: #E0FAF4;
-  --g3: #E17055; --g3-light: #FEF0EC;
-  --g4: #D63384; --g4-light: #FCE4F0;
-  --bg: #F7F6F3;
-  --surface: #FFFFFF;
-  --border: #E8E6E0;
-  --text: #1A1A1A;
-  --muted: #888580;
-  --radius: 10px;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Be Vietnam Pro', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-.top-bar {
-  background: var(--surface); border-bottom: 1px solid var(--border);
-  padding: 0 2rem; display: flex; align-items: center; justify-content: space-between;
-  height: 56px; position: sticky; top: 0; z-index: 100;
-}
-.logo { font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; letter-spacing: 0.05em; color: var(--text); }
-.logo span { color: var(--g1); }
-.status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--g2); display: inline-block; margin-right: 6px; animation: pulse 2s infinite; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-.status-text { font-size: 12px; color: var(--muted); }
-.container { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }
-.hero { margin-bottom: 2rem; }
-.hero h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 4px; }
-.hero p { font-size: 14px; color: var(--muted); }
-.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 2rem; }
-.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
-.stat-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-.stat-num { font-family: 'Space Mono', monospace; font-size: 20px; font-weight: 700; line-height: 1; }
-.stat-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
-.form-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1.5rem; }
-.form-title { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 1rem; }
-.form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; align-items: end; }
-.field { display: flex; flex-direction: column; gap: 5px; }
-.field label { font-size: 12px; color: var(--muted); font-weight: 500; }
-.field input, .field select {
-  width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 7px;
-  font-family: 'Be Vietnam Pro', sans-serif; font-size: 13px; color: var(--text);
-  background: var(--bg); outline: none; transition: border-color 0.15s;
-}
-.field input:focus, .field select:focus { border-color: var(--g1); background: #fff; }
-.btn-reg {
-  width: 100%; padding: 9px; background: var(--text); color: #fff; border: none;
-  border-radius: 7px; font-family: 'Be Vietnam Pro', sans-serif; font-size: 13px;
-  font-weight: 600; cursor: pointer; transition: opacity 0.15s, transform 0.1s; letter-spacing: 0.02em;
-}
-.btn-reg:hover { opacity: 0.85; }
-.btn-reg:active { transform: scale(0.98); }
-.btn-reg:disabled { opacity: 0.5; cursor: not-allowed; }
-.week-tabs { display: flex; gap: 6px; margin-bottom: 1rem; }
-.wtab {
-  padding: 6px 14px; border: 1px solid var(--border); border-radius: 20px;
-  background: transparent; font-family: 'Be Vietnam Pro', sans-serif;
-  font-size: 12px; font-weight: 500; cursor: pointer; color: var(--muted); transition: all 0.15s;
-}
-.wtab.active { background: var(--text); color: #fff; border-color: var(--text); }
-.wtab:hover:not(.active) { background: var(--surface); color: var(--text); }
-.grid-wrap { overflow-x: auto; }
-.schedule {
-  width: 100%; border-collapse: collapse; min-width: 600px;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); overflow: hidden;
-}
-.schedule thead th {
-  font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase;
-  letter-spacing: 0.06em; padding: 10px 8px; text-align: center;
-  background: var(--bg); border-bottom: 1px solid var(--border);
-}
-.schedule thead th.today-head { background: #FFFBEA; color: #92700A; }
-.schedule td { border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); vertical-align: top; padding: 4px; }
-.schedule td:last-child { border-right: none; }
-.schedule tr:last-child td { border-bottom: none; }
-.slot-label {
-  font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase;
-  letter-spacing: 0.05em; text-align: left; padding: 8px 10px !important;
-  white-space: nowrap; background: var(--bg); width: 60px;
-}
-.cell { min-height: 50px; padding: 3px; cursor: pointer; display: flex; flex-direction: column; gap: 3px; transition: background 0.1s; }
-.cell:hover { background: var(--bg); }
-.cell.past { opacity: 0.35; pointer-events: none; }
-.cell.today-col { background: #FFFEF7; }
-.entry {
-  border-radius: 5px; padding: 3px 7px; font-size: 11px; font-weight: 500;
-  display: flex; align-items: center; justify-content: space-between; gap: 4px;
-  animation: fadein 0.2s ease;
-}
-@keyframes fadein { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
-.entry-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
-.entry-del { opacity: 0; font-size: 10px; cursor: pointer; flex-shrink: 0; color: inherit; transition: opacity 0.15s; }
-.entry:hover .entry-del { opacity: 0.7; }
-.e-g1 { background: var(--g1-light); color: var(--g1); }
-.e-g2 { background: var(--g2-light); color: #00876E; }
-.e-g3 { background: var(--g3-light); color: #C05A3A; }
-.e-g4 { background: var(--g4-light); color: var(--g4); }
-.legend { display: flex; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; align-items: center; }
-.leg { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
-.leg-pill { padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
-.toast {
-  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
-  background: var(--text); color: #fff; padding: 10px 20px; border-radius: 8px;
-  font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.25s;
-  pointer-events: none; white-space: nowrap; z-index: 999;
-}
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-.toast.err { background: #C0392B; }
-.loading-overlay {
-  position: fixed; inset: 0; background: rgba(247,246,243,0.8);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 200; font-size: 14px; color: var(--muted); font-family: 'Space Mono', monospace;
-}
-@media (max-width: 640px) {
-  .form-grid { grid-template-columns: 1fr 1fr; }
-  .stats-row { grid-template-columns: 1fr 1fr; }
-  .hero h1 { font-size: 20px; }
-}
-</style>
-</head>
-<body>
+const SS = SpreadsheetApp.getActiveSpreadsheet();
 
-<div class="loading-overlay" id="loading">Đang tải dữ liệu...</div>
-
-<div class="top-bar">
-  <div class="logo">LAB<span>.</span>SCHEDULE</div>
-  <div><span class="status-dot"></span><span class="status-text">Kết nối Google Sheets</span></div>
-</div>
-
-<div class="container">
-  <div class="hero">
-    <h1>Lịch đăng ký lên lab</h1>
-    <p>Chọn ca làm việc và đăng ký — dữ liệu được lưu tự động vào Google Sheets</p>
-  </div>
-
-  <div class="stats-row">
-    <div class="stat-card">
-      <div class="stat-dot" style="background:var(--g1)"></div>
-      <div class="stat-info">
-        <div class="stat-num" id="s1">—</div>
-        <div class="stat-lbl">Nhật Linh · Đồ uống</div>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-dot" style="background:var(--g2)"></div>
-      <div class="stat-info">
-        <div class="stat-num" id="s2">—</div>
-        <div class="stat-lbl">Uyên · Probiotic tía tô</div>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-dot" style="background:var(--g3)"></div>
-      <div class="stat-info">
-        <div class="stat-num" id="s3">—</div>
-        <div class="stat-lbl">Trang · Enzyme</div>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-dot" style="background:var(--g4)"></div>
-      <div class="stat-info">
-        <div class="stat-num" id="s4">—</div>
-        <div class="stat-lbl">NCS. Tuyền</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="form-card">
-    <div class="form-title">Đăng ký ca làm việc</div>
-    <div class="form-grid">
-      <div class="field">
-        <label>Nhóm</label>
-        <select id="sel-group">
-          <option value="1">Nhật Linh · Đồ uống</option>
-          <option value="2">Uyên · Probiotic tía tô</option>
-          <option value="3">Trang · Enzyme</option>
-          <option value="4">NCS. Tuyền</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Họ và tên</label>
-        <input type="text" id="inp-name" placeholder="Nguyễn Văn A" />
-      </div>
-      <div class="field">
-        <label>Ngày</label>
-        <input type="date" id="inp-date" />
-      </div>
-      <div class="field">
-        <label>Ca làm việc</label>
-        <select id="sel-slot">
-          <option value="0">Sáng (7:00–11:30)</option>
-          <option value="1">Chiều (13:00–17:30)</option>
-          <option value="2">Tối (18:00–21:00)</option>
-        </select>
-      </div>
-    </div>
-    <div style="margin-top:10px">
-      <button class="btn-reg" id="btn-reg" onclick="register()">Đăng ký</button>
-    </div>
-  </div>
-
-  <div class="legend">
-    <div class="leg"><span class="leg-pill e-g1">Nhật Linh · Đồ uống</span></div>
-    <div class="leg"><span class="leg-pill e-g2">Uyên · Probiotic tía tô</span></div>
-    <div class="leg"><span class="leg-pill e-g3">Trang · Enzyme</span></div>
-    <div class="leg"><span class="leg-pill e-g4">NCS. Tuyền</span></div>
-    <div class="leg" style="margin-left:auto;font-size:11px">Click ô lịch để điền ngày &amp; ca tự động</div>
-  </div>
-
-  <div class="week-tabs" id="week-tabs">
-    <button class="wtab active" data-w="0">Tuần này</button>
-    <button class="wtab" data-w="1">Tuần sau</button>
-    <button class="wtab" data-w="2">Tuần +2</button>
-  </div>
-
-  <div class="grid-wrap">
-    <table class="schedule" id="schedule"></table>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<script>
-const API = 'https://script.google.com/macros/s/AKfycbya8EFKolL0P3n-XU2JGYz1HweCy86MkzU83eTprdBK7OABWYfO4HlKwV6u_zNDf1Cq/exec';
-const DAYS = ['T2','T3','T4','T5','T6','T7','CN'];
-const SLOTS = ['Sáng','Chiều','Tối'];
-const MAX_PER_SLOT = 6;
-
-let bookings = [];
-let currentWeek = 0;
-
-async function api(params) {
-  const url = API + '?' + new URLSearchParams(params).toString();
-  const res = await fetch(url);
-  return res.json();
-}
-
-async function loadAll() {
+function doGet(e) {
+  const p = e.parameter;
+  const out = ContentService.createTextOutput();
+  out.setMimeType(ContentService.MimeType.JSON);
   try {
-    const data = await api({ action: 'getAll' });
-    bookings = Array.isArray(data) ? data : [];
-    updateStats();
-    renderGrid();
-    document.getElementById('loading').style.display = 'none';
-  } catch(e) {
-    document.getElementById('loading').style.display = 'none';
-    showToast('Lỗi kết nối. Kiểm tra lại Apps Script.', true);
+    let r;
+    if (p.action === 'getSessions') r = getSessions();
+    else if (p.action === 'addSession') r = addSession(p);
+    else if (p.action === 'deleteSession') r = deleteSession(p.id);
+    else if (p.action === 'join') r = joinSession(p);
+    else if (p.action === 'leave') r = leaveSession(p);
+    else r = { error: 'Unknown action' };
+    out.setContent(JSON.stringify(r));
+  } catch(err) {
+    out.setContent(JSON.stringify({ error: err.message }));
   }
+  return out;
 }
 
-async function register() {
-  const grp = document.getElementById('sel-group').value;
-  const name = document.getElementById('inp-name').value.trim();
-  const date = document.getElementById('inp-date').value;
-  const slot = document.getElementById('sel-slot').value;
+function doPost(e) { return doGet(e); }
 
-  if (!name) { showToast('Vui lòng nhập họ tên!', true); return; }
-  if (!date) { showToast('Vui lòng chọn ngày!', true); return; }
-
-  const today = new Date(); today.setHours(0,0,0,0);
-  if (new Date(date) < today) { showToast('Không thể đăng ký ngày đã qua!', true); return; }
-
-  const existing = bookings.filter(b => b.date === date && b.slot == slot);
-  if (existing.find(b => b.name === name)) { showToast('Bạn đã đăng ký ca này rồi!', true); return; }
-  if (existing.length >= MAX_PER_SLOT) { showToast('Ca này đã đủ ' + MAX_PER_SLOT + ' người!', true); return; }
-
-  const btn = document.getElementById('btn-reg');
-  btn.disabled = true; btn.textContent = 'Đang lưu...';
-
-  try {
-    const res = await api({ action: 'add', name, grp, date, slot });
-    if (res.success) {
-      bookings.push({ id: res.id, name, grp: +grp, date, slot: +slot });
-      document.getElementById('inp-name').value = '';
-      updateStats();
-      const dayDiff = Math.floor((new Date(date) - getMonday(0)) / 86400000);
-      const w = Math.floor(dayDiff / 7);
-      if (w >= 0 && w <= 2) setWeek(w); else renderGrid();
-      showToast('Đăng ký thành công!');
-    } else {
-      showToast('Lỗi: ' + (res.error || 'unknown'), true);
-    }
-  } catch(e) {
-    showToast('Lỗi kết nối!', true);
+function getSheet(name) {
+  let s = SS.getSheetByName(name);
+  if (!s) {
+    s = SS.insertSheet(name);
+    if (name === 'sessions') s.appendRow(['id','group','date','slot','title','content','created_at']);
+    if (name === 'participants') s.appendRow(['id','session_id','name','joined_at']);
   }
-  btn.disabled = false; btn.textContent = 'Đăng ký';
+  return s;
 }
 
-async function deleteEntry(id) {
-  try {
-    await api({ action: 'delete', id });
-    bookings = bookings.filter(b => b.id != id);
-    updateStats(); renderGrid();
-    showToast('Đã xóa.');
-  } catch(e) { showToast('Lỗi xóa!', true); }
+function getSessions() {
+  const sSheet = getSheet('sessions');
+  const pSheet = getSheet('participants');
+  const sData = sSheet.getDataRange().getValues().slice(1).filter(r => r[0] !== '');
+  const pData = pSheet.getDataRange().getValues().slice(1).filter(r => r[0] !== '');
+  return sData.map(r => ({
+    id: r[0], group: r[1], date: r[2], slot: r[3],
+    title: r[4], content: r[5], created_at: r[6],
+    participants: pData.filter(p => p[1] == r[0]).map(p => ({ id: p[0], name: p[2] }))
+  }));
 }
 
-function getMonday(offset) {
-  const d = new Date();
-  const day = d.getDay() || 7;
-  d.setDate(d.getDate() - day + 1 + offset * 7);
-  d.setHours(0,0,0,0);
-  return d;
+function addSession(p) {
+  const sheet = getSheet('sessions');
+  const id = Date.now().toString();
+  sheet.appendRow([id, p.group, p.date, p.slot, p.title, p.content, new Date().toISOString()]);
+  return { success: true, id };
 }
 
-function dateKey(d) { return d.toISOString().slice(0,10); }
-function fmtDay(d) { return d.getDate() + '/' + (d.getMonth()+1); }
-
-function setWeek(w) {
-  currentWeek = w;
-  document.querySelectorAll('.wtab').forEach(b => b.classList.toggle('active', +b.dataset.w === w));
-  renderGrid();
-}
-document.querySelectorAll('.wtab').forEach(b => b.addEventListener('click', () => setWeek(+b.dataset.w)));
-
-function renderGrid() {
-  const monday = getMonday(currentWeek);
-  const today = new Date(); today.setHours(0,0,0,0);
-  const todayKey = dateKey(today);
-  const tbl = document.getElementById('schedule');
-
-  const dates = Array.from({length:7}, (_,i) => { const d = new Date(monday); d.setDate(monday.getDate()+i); return d; });
-
-  let html = '<thead><tr><th style="width:60px"></th>';
-  dates.forEach((d,i) => {
-    const isToday = dateKey(d) === todayKey;
-    html += `<th class="${isToday?'today-head':''}">${DAYS[i]}<br><span style="font-weight:400;font-size:10px">${fmtDay(d)}</span></th>`;
-  });
-  html += '</tr></thead><tbody>';
-
-  for (let s = 0; s < 3; s++) {
-    html += '<tr><td class="slot-label">' + SLOTS[s] + '</td>';
-    dates.forEach(d => {
-      const dk = dateKey(d);
-      const isToday = dk === todayKey;
-      const past = d < today;
-      const dayBookings = bookings.filter(b => b.date === dk && b.slot == s);
-      html += `<td><div class="cell${past?' past':''}${isToday?' today-col':''}" onclick="cellClick('${dk}',${s})">`;
-      dayBookings.forEach(b => {
-        const cls = 'e-g' + b.grp;
-        const grpNames = {1:'Nhật Linh',2:'Uyên',3:'Trang',4:'NCS. Tuyền'};
-        html += `<div class="entry ${cls}" onclick="event.stopPropagation()">
-          <span class="entry-name" title="${b.name} (${grpNames[b.grp]||'Nhóm '+b.grp})">${b.name}</span>
-          <span class="entry-del" onclick="deleteEntry('${b.id}')" title="Xóa">✕</span>
-        </div>`;
-      });
-      html += '</div></td>';
-    });
-    html += '</tr>';
+function deleteSession(id) {
+  const sSheet = getSheet('sessions');
+  const pSheet = getSheet('participants');
+  const sData = sSheet.getDataRange().getValues();
+  for (let i = 1; i < sData.length; i++) {
+    if (sData[i][0] == id) { sSheet.deleteRow(i + 1); break; }
   }
-  html += '</tbody>';
-  tbl.innerHTML = html;
+  const pData = pSheet.getDataRange().getValues();
+  for (let i = pData.length - 1; i >= 1; i--) {
+    if (pData[i][1] == id) pSheet.deleteRow(i + 1);
+  }
+  return { success: true };
 }
 
-function cellClick(date, slot) {
-  document.getElementById('inp-date').value = date;
-  document.getElementById('sel-slot').value = slot;
+function joinSession(p) {
+  const sheet = getSheet('participants');
+  const data = sheet.getDataRange().getValues().slice(1);
+  if (data.find(r => r[1] == p.session_id && r[2] === p.name)) return { error: 'Bạn đã tham gia ca này rồi!' };
+  const id = Date.now().toString();
+  sheet.appendRow([id, p.session_id, p.name, new Date().toISOString()]);
+  return { success: true, id };
 }
 
-function updateStats() {
-  const cnt = {1:0,2:0,3:0,4:0};
-  bookings.forEach(b => { if(cnt[b.grp]!==undefined) cnt[b.grp]++; });
-  document.getElementById('s1').textContent = cnt[1];
-  document.getElementById('s2').textContent = cnt[2];
-  document.getElementById('s3').textContent = cnt[3];
-  document.getElementById('s4').textContent = cnt[4];
+function leaveSession(p) {
+  const sheet = getSheet('participants');
+  const data = sheet.getDataRange().getValues();
+  for (let i = data.length - 1; i >= 1; i--) {
+    if (data[i][0] == p.id) { sheet.deleteRow(i + 1); return { success: true }; }
+  }
+  return { error: 'Not found' };
 }
-
-document.getElementById('inp-date').value = dateKey(new Date());
-loadAll();
-</script>
-</body>
-</html>
