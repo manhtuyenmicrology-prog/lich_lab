@@ -7,9 +7,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --g1: #6C5CE7; --g1-light: #EEF0FF; --g1-mid: #C4BEF7;
-  --g2: #00B894; --g2-light: #E0FAF4; --g2-mid: #81E6D3;
-  --g3: #E17055; --g3-light: #FEF0EC; --g3-mid: #F5B8A5;
+  --g1: #6C5CE7; --g1-light: #EEF0FF;
+  --g2: #00B894; --g2-light: #E0FAF4;
+  --g3: #E17055; --g3-light: #FEF0EC;
+  --g4: #D63384; --g4-light: #FCE4F0;
   --bg: #F7F6F3;
   --surface: #FFFFFF;
   --border: #E8E6E0;
@@ -18,220 +19,109 @@
   --radius: 10px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: 'Be Vietnam Pro', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-}
+body { font-family: 'Be Vietnam Pro', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 .top-bar {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 0 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 56px;
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0 2rem; display: flex; align-items: center; justify-content: space-between;
+  height: 56px; position: sticky; top: 0; z-index: 100;
 }
-.logo {
-  font-family: 'Space Mono', monospace;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  color: var(--text);
-}
+.logo { font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; letter-spacing: 0.05em; color: var(--text); }
 .logo span { color: var(--g1); }
-.status-dot {
-  width: 7px; height: 7px; border-radius: 50%;
-  background: var(--g2); display: inline-block; margin-right: 6px;
-  animation: pulse 2s infinite;
-}
+.status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--g2); display: inline-block; margin-right: 6px; animation: pulse 2s infinite; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 .status-text { font-size: 12px; color: var(--muted); }
-
-.container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
-
+.container { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }
 .hero { margin-bottom: 2rem; }
 .hero h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 4px; }
 .hero p { font-size: 14px; color: var(--muted); }
-
-.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 2rem; }
-.stat-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px 16px;
-  display: flex; align-items: center; gap: 12px;
-}
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 2rem; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
 .stat-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-.stat-info {}
 .stat-num { font-family: 'Space Mono', monospace; font-size: 20px; font-weight: 700; line-height: 1; }
-.stat-lbl { font-size: 12px; color: var(--muted); margin-top: 2px; }
-
-.form-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1.25rem;
-  margin-bottom: 1.5rem;
-}
+.stat-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.form-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1.5rem; }
 .form-title { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 1rem; }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; align-items: end; }
 .field { display: flex; flex-direction: column; gap: 5px; }
 .field label { font-size: 12px; color: var(--muted); font-weight: 500; }
 .field input, .field select {
-  width: 100%;
-  padding: 8px 10px;
-  border: 1px solid var(--border);
-  border-radius: 7px;
-  font-family: 'Be Vietnam Pro', sans-serif;
-  font-size: 13px;
-  color: var(--text);
-  background: var(--bg);
-  outline: none;
-  transition: border-color 0.15s;
+  width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 7px;
+  font-family: 'Be Vietnam Pro', sans-serif; font-size: 13px; color: var(--text);
+  background: var(--bg); outline: none; transition: border-color 0.15s;
 }
 .field input:focus, .field select:focus { border-color: var(--g1); background: #fff; }
 .btn-reg {
-  width: 100%;
-  padding: 9px;
-  background: var(--text);
-  color: #fff;
-  border: none;
-  border-radius: 7px;
-  font-family: 'Be Vietnam Pro', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.15s, transform 0.1s;
-  letter-spacing: 0.02em;
+  width: 100%; padding: 9px; background: var(--text); color: #fff; border: none;
+  border-radius: 7px; font-family: 'Be Vietnam Pro', sans-serif; font-size: 13px;
+  font-weight: 600; cursor: pointer; transition: opacity 0.15s, transform 0.1s; letter-spacing: 0.02em;
 }
 .btn-reg:hover { opacity: 0.85; }
 .btn-reg:active { transform: scale(0.98); }
 .btn-reg:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.week-tabs {
-  display: flex; gap: 6px; margin-bottom: 1rem;
-}
+.week-tabs { display: flex; gap: 6px; margin-bottom: 1rem; }
 .wtab {
-  padding: 6px 14px;
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  background: transparent;
-  font-family: 'Be Vietnam Pro', sans-serif;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  color: var(--muted);
-  transition: all 0.15s;
+  padding: 6px 14px; border: 1px solid var(--border); border-radius: 20px;
+  background: transparent; font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 12px; font-weight: 500; cursor: pointer; color: var(--muted); transition: all 0.15s;
 }
 .wtab.active { background: var(--text); color: #fff; border-color: var(--text); }
 .wtab:hover:not(.active) { background: var(--surface); color: var(--text); }
-
 .grid-wrap { overflow-x: auto; }
 .schedule {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 600px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
+  width: 100%; border-collapse: collapse; min-width: 600px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
 }
 .schedule thead th {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  padding: 10px 8px;
-  text-align: center;
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
+  font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase;
+  letter-spacing: 0.06em; padding: 10px 8px; text-align: center;
+  background: var(--bg); border-bottom: 1px solid var(--border);
 }
 .schedule thead th.today-head { background: #FFFBEA; color: #92700A; }
-.schedule td {
-  border-right: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  vertical-align: top;
-  padding: 4px;
-}
+.schedule td { border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); vertical-align: top; padding: 4px; }
 .schedule td:last-child { border-right: none; }
 .schedule tr:last-child td { border-bottom: none; }
 .slot-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  text-align: left;
-  padding: 8px 10px !important;
-  white-space: nowrap;
-  background: var(--bg);
-  width: 60px;
+  font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase;
+  letter-spacing: 0.05em; text-align: left; padding: 8px 10px !important;
+  white-space: nowrap; background: var(--bg); width: 60px;
 }
-.cell {
-  min-height: 50px;
-  padding: 3px;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  transition: background 0.1s;
-}
+.cell { min-height: 50px; padding: 3px; cursor: pointer; display: flex; flex-direction: column; gap: 3px; transition: background 0.1s; }
 .cell:hover { background: var(--bg); }
 .cell.past { opacity: 0.35; pointer-events: none; }
 .cell.today-col { background: #FFFEF7; }
-
 .entry {
-  border-radius: 5px;
-  padding: 3px 7px;
-  font-size: 11px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px;
+  border-radius: 5px; padding: 3px 7px; font-size: 11px; font-weight: 500;
+  display: flex; align-items: center; justify-content: space-between; gap: 4px;
   animation: fadein 0.2s ease;
 }
 @keyframes fadein { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
 .entry-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
 .entry-del { opacity: 0; font-size: 10px; cursor: pointer; flex-shrink: 0; color: inherit; transition: opacity 0.15s; }
 .entry:hover .entry-del { opacity: 0.7; }
-
 .e-g1 { background: var(--g1-light); color: var(--g1); }
 .e-g2 { background: var(--g2-light); color: #00876E; }
 .e-g3 { background: var(--g3-light); color: #C05A3A; }
-
-.legend { display: flex; gap: 16px; margin-bottom: 10px; flex-wrap: wrap; }
+.e-g4 { background: var(--g4-light); color: var(--g4); }
+.legend { display: flex; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; align-items: center; }
 .leg { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
 .leg-pill { padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
-
 .toast {
   position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
-  background: var(--text); color: #fff;
-  padding: 10px 20px; border-radius: 8px;
-  font-size: 13px; font-weight: 500;
-  opacity: 0; transition: all 0.25s;
-  pointer-events: none; white-space: nowrap;
-  z-index: 999;
+  background: var(--text); color: #fff; padding: 10px 20px; border-radius: 8px;
+  font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.25s;
+  pointer-events: none; white-space: nowrap; z-index: 999;
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 .toast.err { background: #C0392B; }
-
 .loading-overlay {
   position: fixed; inset: 0; background: rgba(247,246,243,0.8);
   display: flex; align-items: center; justify-content: center;
-  z-index: 200; font-size: 14px; color: var(--muted);
-  font-family: 'Space Mono', monospace;
+  z-index: 200; font-size: 14px; color: var(--muted); font-family: 'Space Mono', monospace;
 }
-
 @media (max-width: 640px) {
   .form-grid { grid-template-columns: 1fr 1fr; }
-  .stats-row { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: 1fr 1fr; }
   .hero h1 { font-size: 20px; }
 }
 </style>
@@ -273,6 +163,13 @@ body {
         <div class="stat-lbl">Trang · Enzyme</div>
       </div>
     </div>
+    <div class="stat-card">
+      <div class="stat-dot" style="background:var(--g4)"></div>
+      <div class="stat-info">
+        <div class="stat-num" id="s4">—</div>
+        <div class="stat-lbl">NCS. Tuyền</div>
+      </div>
+    </div>
   </div>
 
   <div class="form-card">
@@ -284,6 +181,7 @@ body {
           <option value="1">Nhật Linh · Đồ uống</option>
           <option value="2">Uyên · Probiotic tía tô</option>
           <option value="3">Trang · Enzyme</option>
+          <option value="4">NCS. Tuyền</option>
         </select>
       </div>
       <div class="field">
@@ -312,7 +210,8 @@ body {
     <div class="leg"><span class="leg-pill e-g1">Nhật Linh · Đồ uống</span></div>
     <div class="leg"><span class="leg-pill e-g2">Uyên · Probiotic tía tô</span></div>
     <div class="leg"><span class="leg-pill e-g3">Trang · Enzyme</span></div>
-    <div class="leg" style="margin-left:auto;font-size:11px">Click ô lịch để điền ngày & ca tự động</div>
+    <div class="leg"><span class="leg-pill e-g4">NCS. Tuyền</span></div>
+    <div class="leg" style="margin-left:auto;font-size:11px">Click ô lịch để điền ngày &amp; ca tự động</div>
   </div>
 
   <div class="week-tabs" id="week-tabs">
@@ -446,8 +345,9 @@ function renderGrid() {
       html += `<td><div class="cell${past?' past':''}${isToday?' today-col':''}" onclick="cellClick('${dk}',${s})">`;
       dayBookings.forEach(b => {
         const cls = 'e-g' + b.grp;
+        const grpNames = {1:'Nhật Linh',2:'Uyên',3:'Trang',4:'NCS. Tuyền'};
         html += `<div class="entry ${cls}" onclick="event.stopPropagation()">
-          <span class="entry-name" title="${b.name} (Nhóm ${b.grp})">${b.name}</span>
+          <span class="entry-name" title="${b.name} (${grpNames[b.grp]||'Nhóm '+b.grp})">${b.name}</span>
           <span class="entry-del" onclick="deleteEntry('${b.id}')" title="Xóa">✕</span>
         </div>`;
       });
@@ -465,19 +365,12 @@ function cellClick(date, slot) {
 }
 
 function updateStats() {
-  const cnt = {1:0,2:0,3:0};
+  const cnt = {1:0,2:0,3:0,4:0};
   bookings.forEach(b => { if(cnt[b.grp]!==undefined) cnt[b.grp]++; });
   document.getElementById('s1').textContent = cnt[1];
   document.getElementById('s2').textContent = cnt[2];
   document.getElementById('s3').textContent = cnt[3];
-}
-
-function showToast(msg, err=false) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast show' + (err?' err':'');
-  clearTimeout(t._t);
-  t._t = setTimeout(() => t.classList.remove('show'), 2800);
+  document.getElementById('s4').textContent = cnt[4];
 }
 
 document.getElementById('inp-date').value = dateKey(new Date());
