@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lịch Đăng Ký Lên Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --g1: #6C5CE7; --g1-light: #EEF0FF;
+  --g2: #00B894; --g2-light: #E0FAF4;
+  --g3: #E17055; --g3-light: #FEF0EC;
+  --g4: #D63384; --g4-light: #FCE4F0;
+  --bg: #F7F6F3; --surface: #FFFFFF;
+  --border: #E8E6E0; --text: #1A1A1A; --muted: #888580;
+  --radius: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Be Vietnam Pro', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* TOP BAR */
+.top-bar {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0 2rem; display: flex; align-items: center; justify-content: space-between;
+  height: 56px; position: sticky; top: 0; z-index: 100;
+}
+.logo { font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; letter-spacing: 0.05em; }
+.logo span { color: var(--g1); }
+.top-right { display: flex; align-items: center; gap: 12px; }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--g2); display: inline-block; margin-right: 6px; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.status-text { font-size: 12px; color: var(--muted); }
+.role-badge { font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; cursor: pointer; border: 1px solid var(--border); background: var(--bg); color: var(--muted); }
+.role-badge.leader { background: var(--g1-light); color: var(--g1); border-color: var(--g1); }
+.role-badge.member { background: var(--g2-light); color: #00876E; border-color: var(--g2); }
+
+/* ROLE SELECT SCREEN */
+.role-screen {
+  min-height: calc(100vh - 56px); display: flex; flex-direction: column;
+  align-items: center; justify-content: center; padding: 2rem;
+}
+.role-screen h2 { font-size: 22px; font-weight: 600; margin-bottom: 8px; letter-spacing: -0.02em; }
+.role-screen p { font-size: 14px; color: var(--muted); margin-bottom: 2.5rem; }
+.role-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; max-width: 480px; }
+.role-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+  padding: 2rem 1.5rem; cursor: pointer; transition: all 0.15s; text-align: center;
+}
+.role-card:hover { border-color: var(--g1); transform: translateY(-2px); }
+.role-card.r-member:hover { border-color: var(--g2); }
+.role-icon { font-size: 32px; margin-bottom: 12px; }
+.role-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.role-card p { font-size: 12px; color: var(--muted); }
+
+/* MAIN CONTAINER */
+.container { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; display: none; }
+
+.hero { margin-bottom: 1.5rem; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.hero h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 4px; }
+.hero p { font-size: 13px; color: var(--muted); }
+
+/* STATS */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.5rem; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; display: flex; align-items: center; gap: 10px; }
+.stat-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.stat-num { font-family: 'Space Mono', monospace; font-size: 18px; font-weight: 700; line-height: 1; }
+.stat-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* FORM (leader only) */
+.form-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1.5rem; }
+.form-title { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 1rem; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 12px; color: var(--muted); font-weight: 500; }
+.field input, .field select, .field textarea {
+  width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 7px;
+  font-family: 'Be Vietnam Pro', sans-serif; font-size: 13px; color: var(--text);
+  background: var(--bg); outline: none; transition: border-color 0.15s;
+}
+.field textarea { resize: vertical; min-height: 64px; }
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--g1); background: #fff; }
+.btn { padding: 8px 18px; border-radius: 7px; font-family: 'Be Vietnam Pro', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; border: none; }
+.btn-primary { background: var(--text); color: #fff; }
+.btn-primary:hover { opacity: 0.85; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+.btn-outline:hover { background: var(--bg); color: var(--text); }
+
+/* WEEK TABS */
+.week-tabs { display: flex; gap: 6px; margin-bottom: 1rem; }
+.wtab { padding: 6px 14px; border: 1px solid var(--border); border-radius: 20px; background: transparent; font-family: 'Be Vietnam Pro', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; color: var(--muted); transition: all 0.15s; }
+.wtab.active { background: var(--text); color: #fff; border-color: var(--text); }
+.wtab:hover:not(.active) { background: var(--surface); color: var(--text); }
+
+/* LEGEND */
+.legend { display: flex; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; align-items: center; }
+.leg-pill { padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+
+/* GRID */
+.grid-wrap { overflow-x: auto; }
+.schedule { width: 100%; border-collapse: collapse; min-width: 600px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.schedule thead th { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; padding: 10px 8px; text-align: center; background: var(--bg); border-bottom: 1px solid var(--border); }
+.schedule thead th.today-head { background: #FFFBEA; color: #92700A; }
+.schedule td { border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); vertical-align: top; padding: 4px; }
+.schedule td:last-child { border-right: none; }
+.schedule tr:last-child td { border-bottom: none; }
+.slot-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; text-align: left; padding: 8px 10px !important; white-space: nowrap; background: var(--bg); width: 60px; }
+.cell { min-height: 54px; padding: 3px; display: flex; flex-direction: column; gap: 3px; }
+.session-pill {
+  border-radius: 6px; padding: 4px 8px; font-size: 11px; font-weight: 500;
+  cursor: pointer; transition: opacity 0.15s; display: flex; flex-direction: column; gap: 2px;
+}
+.session-pill:hover { opacity: 0.8; }
+.session-pill .pill-title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.session-pill .pill-count { font-size: 10px; opacity: 0.75; }
+.add-btn {
+  border: 1px dashed var(--border); border-radius: 6px; padding: 4px 8px;
+  font-size: 11px; color: var(--muted); cursor: pointer; text-align: center;
+  transition: all 0.15s; background: transparent;
+}
+.add-btn:hover { border-color: var(--g1); color: var(--g1); background: var(--g1-light); }
+.cell.past { opacity: 0.4; pointer-events: none; }
+.cell.today-col { background: #FFFEF7; }
+
+.e-g1 { background: var(--g1-light); color: var(--g1); }
+.e-g2 { background: var(--g2-light); color: #00876E; }
+.e-g3 { background: var(--g3-light); color: #C05A3A; }
+.e-g4 { background: var(--g4-light); color: var(--g4); }
+
+/* MODAL */
+.modal-bg {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.35);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 500; padding: 1rem; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.modal-bg.show { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--surface); border-radius: 14px; border: 1px solid var(--border);
+  width: 100%; max-width: 440px; padding: 1.5rem;
+  transform: translateY(12px); transition: transform 0.2s;
+}
+.modal-bg.show .modal { transform: translateY(0); }
+.modal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 1rem; }
+.modal-title { font-size: 16px; font-weight: 600; }
+.modal-close { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--muted); line-height: 1; padding: 2px 6px; border-radius: 4px; }
+.modal-close:hover { background: var(--bg); }
+.modal-meta { font-size: 12px; color: var(--muted); margin-bottom: 12px; display: flex; gap: 10px; flex-wrap: wrap; }
+.modal-meta span { display: flex; align-items: center; gap: 4px; }
+.modal-content-box { background: var(--bg); border-radius: 8px; padding: 12px; font-size: 13px; line-height: 1.6; margin-bottom: 1rem; white-space: pre-wrap; }
+.modal-section { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+.participant-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 1rem; }
+.participant-item { display: flex; align-items: center; justify-content: space-between; font-size: 13px; padding: 6px 10px; background: var(--bg); border-radius: 6px; }
+.participant-item .p-name { font-weight: 500; }
+.participant-item .p-grp { font-size: 11px; color: var(--muted); }
+.participant-del { font-size: 11px; cursor: pointer; color: var(--muted); }
+.participant-del:hover { color: #C0392B; }
+.join-row { display: flex; gap: 8px; }
+.join-row input { flex: 1; padding: 8px 10px; border: 1px solid var(--border); border-radius: 7px; font-family: 'Be Vietnam Pro', sans-serif; font-size: 13px; outline: none; }
+.join-row input:focus { border-color: var(--g2); }
+.empty-participants { font-size: 13px; color: var(--muted); text-align: center; padding: 12px 0; }
+
+/* TOAST */
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--text); color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.25s; pointer-events: none; white-space: nowrap; z-index: 999; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.err { background: #C0392B; }
+
+.loading-overlay { position: fixed; inset: 0; background: rgba(247,246,243,0.9); display: flex; align-items: center; justify-content: center; z-index: 200; font-size: 14px; color: var(--muted); font-family: 'Space Mono', monospace; }
+
+@media (max-width: 640px) {
+  .form-grid { grid-template-columns: 1fr 1fr; }
+  .stats-row { grid-template-columns: 1fr 1fr; }
+  .role-cards { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loading">Đang tải dữ liệu...</div>
+
+<div class="top-bar">
+  <div class="logo">LAB<span>.</span>SCHEDULE</div>
+  <div class="top-right">
+    <div><span class="status-dot"></span><span class="status-text">Google Sheets</span></div>
+    <div class="role-badge" id="role-badge" onclick="switchRole()" style="display:none"></div>
+  </div>
+</div>
+
+<!-- ROLE SELECT -->
+<div class="role-screen" id="role-screen">
+  <h2>Chào mừng đến Lab 👋</h2>
+  <p>Bạn đang đăng nhập với vai trò nào?</p>
+  <div class="role-cards">
+    <div class="role-card" onclick="selectRole('leader')">
+      <div class="role-icon">🔬</div>
+      <h3>Trưởng nhóm</h3>
+      <p>Tạo ca làm việc, điền nội dung công việc</p>
+    </div>
+    <div class="role-card r-member" onclick="selectRole('member')">
+      <div class="role-icon">🧪</div>
+      <h3>Thành viên</h3>
+      <p>Xem lịch và đăng ký tham gia ca làm việc</p>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="container" id="main-container">
+  <div class="hero">
+    <div>
+      <h1>Lịch đăng ký lên lab</h1>
+      <p id="hero-sub">Xem lịch và đăng ký tham gia ca làm việc</p>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-dot" style="background:var(--g1)"></div><div><div class="stat-num" id="s1">—</div><div class="stat-lbl">Nhật Linh · Đồ uống</div></div></div>
+    <div class="stat-card"><div class="stat-dot" style="background:var(--g2)"></div><div><div class="stat-num" id="s2">—</div><div class="stat-lbl">Uyên · Probiotic tía tô</div></div></div>
+    <div class="stat-card"><div class="stat-dot" style="background:var(--g3)"></div><div><div class="stat-num" id="s3">—</div><div class="stat-lbl">Trang · Enzyme</div></div></div>
+    <div class="stat-card"><div class="stat-dot" style="background:var(--g4)"></div><div><div class="stat-num" id="s4">—</div><div class="stat-lbl">NCS. Tuyền</div></div></div>
+  </div>
+
+  <!-- LEADER FORM -->
+  <div class="form-card" id="leader-form" style="display:none">
+    <div class="form-title">Tạo ca làm việc mới</div>
+    <div class="form-grid">
+      <div class="field"><label>Nhóm</label>
+        <select id="f-group">
+          <option value="1">Nhật Linh · Đồ uống</option>
+          <option value="2">Uyên · Probiotic tía tô</option>
+          <option value="3">Trang · Enzyme</option>
+          <option value="4">NCS. Tuyền</option>
+        </select>
+      </div>
+      <div class="field"><label>Ngày</label><input type="date" id="f-date" /></div>
+      <div class="field"><label>Ca làm việc</label>
+        <select id="f-slot">
+          <option value="0">Sáng (7:00–11:30)</option>
+          <option value="1">Chiều (13:00–17:30)</option>
+          <option value="2">Tối (18:00–21:00)</option>
+        </select>
+      </div>
+      <div class="field"><label>Tiêu đề công việc</label><input type="text" id="f-title" placeholder="VD: Phân lập LAB từ tía tô" /></div>
+    </div>
+    <div class="field" style="margin-bottom:10px"><label>Nội dung chi tiết</label><textarea id="f-content" placeholder="Mô tả công việc cụ thể, dụng cụ cần chuẩn bị, lưu ý..."></textarea></div>
+    <button class="btn btn-primary" id="btn-create" onclick="createSession()">Tạo ca làm việc</button>
+  </div>
+
+  <div class="legend">
+    <div><span class="leg-pill e-g1">Nhật Linh · Đồ uống</span></div>
+    <div><span class="leg-pill e-g2">Uyên · Probiotic tía tô</span></div>
+    <div><span class="leg-pill e-g3">Trang · Enzyme</span></div>
+    <div><span class="leg-pill e-g4">NCS. Tuyền</span></div>
+    <div style="margin-left:auto;font-size:11px;color:var(--muted)" id="legend-hint">Bấm vào ca để xem chi tiết và đăng ký</div>
+  </div>
+
+  <div class="week-tabs">
+    <button class="wtab active" data-w="0">Tuần này</button>
+    <button class="wtab" data-w="1">Tuần sau</button>
+    <button class="wtab" data-w="2">Tuần +2</button>
+  </div>
+
+  <div class="grid-wrap">
+    <table class="schedule" id="schedule"></table>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal-bg" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="m-title"></div>
+        <div class="modal-meta" id="m-meta"></div>
+      </div>
+      <button class="modal-close" onclick="closeModalDirect()">✕</button>
+    </div>
+    <div class="modal-content-box" id="m-content"></div>
+    <div class="modal-section">Người tham gia</div>
+    <div class="participant-list" id="m-participants"></div>
+    <div id="m-join-area"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbya8EFKolL0P3n-XU2JGYz1HweCy86MkzU83eTprdBK7OABWYfO4HlKwV6u_zNDf1Cq/exec';
+const DAYS = ['T2','T3','T4','T5','T6','T7','CN'];
+const SLOTS = ['Sáng','Chiều','Tối'];
+const SLOT_TIME = ['7:00–11:30','13:00–17:30','18:00–21:00'];
+const GRP = {1:'Nhật Linh',2:'Uyên',3:'Trang',4:'NCS. Tuyền'};
+const GRP_CLS = {1:'e-g1',2:'e-g2',3:'e-g3',4:'e-g4'};
+
+let sessions = [];
+let currentWeek = 0;
+let role = null;
+let activeSession = null;
+
+async function apiCall(params) {
+  const url = API + '?' + new URLSearchParams(params).toString();
+  const res = await fetch(url);
+  return res.json();
+}
+
+async function loadAll() {
+  try {
+    const data = await apiCall({ action: 'getSessions' });
+    sessions = Array.isArray(data) ? data : [];
+    updateStats(); renderGrid();
+    document.getElementById('loading').style.display = 'none';
+  } catch(e) {
+    document.getElementById('loading').style.display = 'none';
+    showToast('Lỗi kết nối!', true);
+  }
+}
+
+function selectRole(r) {
+  role = r;
+  document.getElementById('role-screen').style.display = 'none';
+  document.getElementById('main-container').style.display = 'block';
+  const badge = document.getElementById('role-badge');
+  badge.style.display = 'block';
+  if (r === 'leader') {
+    badge.textContent = '🔬 Trưởng nhóm';
+    badge.className = 'role-badge leader';
+    document.getElementById('leader-form').style.display = 'block';
+    document.getElementById('hero-sub').textContent = 'Tạo ca làm việc và quản lý lịch lab';
+    document.getElementById('legend-hint').textContent = 'Bấm vào ca để xem chi tiết và quản lý';
+  } else {
+    badge.textContent = '🧪 Thành viên';
+    badge.className = 'role-badge member';
+    document.getElementById('leader-form').style.display = 'none';
+    document.getElementById('hero-sub').textContent = 'Xem lịch và đăng ký tham gia ca làm việc';
+  }
+  loadAll();
+}
+
+function switchRole() {
+  role = null;
+  sessions = [];
+  document.getElementById('role-screen').style.display = 'flex';
+  document.getElementById('main-container').style.display = 'none';
+  document.getElementById('role-badge').style.display = 'none';
+}
+
+async function createSession() {
+  const grp = document.getElementById('f-group').value;
+  const date = document.getElementById('f-date').value;
+  const slot = document.getElementById('f-slot').value;
+  const title = document.getElementById('f-title').value.trim();
+  const content = document.getElementById('f-content').value.trim();
+  if (!date) { showToast('Vui lòng chọn ngày!', true); return; }
+  if (!title) { showToast('Vui lòng nhập tiêu đề công việc!', true); return; }
+  const today = new Date(); today.setHours(0,0,0,0);
+  if (new Date(date) < today) { showToast('Không thể tạo ca cho ngày đã qua!', true); return; }
+  const btn = document.getElementById('btn-create');
+  btn.disabled = true; btn.textContent = 'Đang lưu...';
+  try {
+    const res = await apiCall({ action: 'addSession', group: grp, date, slot, title, content });
+    if (res.success) {
+      sessions.push({ id: res.id, group: +grp, date, slot: +slot, title, content, participants: [] });
+      document.getElementById('f-title').value = '';
+      document.getElementById('f-content').value = '';
+      updateStats(); renderGrid();
+      showToast('Đã tạo ca làm việc!');
+    } else { showToast('Lỗi: ' + res.error, true); }
+  } catch(e) { showToast('Lỗi kết nối!', true); }
+  btn.disabled = false; btn.textContent = 'Tạo ca làm việc';
+}
+
+function getMonday(offset) {
+  const d = new Date();
+  const day = d.getDay() || 7;
+  d.setDate(d.getDate() - day + 1 + offset * 7);
+  d.setHours(0,0,0,0);
+  return d;
+}
+function dateKey(d) { return d.toISOString().slice(0,10); }
+function fmtDay(d) { return d.getDate() + '/' + (d.getMonth()+1); }
+
+function setWeek(w) {
+  currentWeek = w;
+  document.querySelectorAll('.wtab').forEach(b => b.classList.toggle('active', +b.dataset.w === w));
+  renderGrid();
+}
+document.querySelectorAll('.wtab').forEach(b => b.addEventListener('click', () => setWeek(+b.dataset.w)));
+
+function renderGrid() {
+  const monday = getMonday(currentWeek);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayKey = dateKey(today);
+  const tbl = document.getElementById('schedule');
+  const dates = Array.from({length:7}, (_,i) => { const d = new Date(monday); d.setDate(monday.getDate()+i); return d; });
+
+  let html = '<thead><tr><th style="width:60px"></th>';
+  dates.forEach((d,i) => {
+    const isToday = dateKey(d) === todayKey;
+    html += `<th class="${isToday?'today-head':''}">${DAYS[i]}<br><span style="font-weight:400;font-size:10px">${fmtDay(d)}</span></th>`;
+  });
+  html += '</tr></thead><tbody>';
+
+  for (let s = 0; s < 3; s++) {
+    html += '<tr><td class="slot-label">' + SLOTS[s] + '</td>';
+    dates.forEach(d => {
+      const dk = dateKey(d);
+      const isToday = dk === todayKey;
+      const past = d < today;
+      const daySessions = sessions.filter(ss => ss.date === dk && ss.slot == s);
+      html += `<td><div class="cell${past?' past':''}${isToday?' today-col':''}">`;
+      daySessions.forEach(ss => {
+        const cls = GRP_CLS[ss.group] || 'e-g1';
+        html += `<div class="session-pill ${cls}" onclick="openSession('${ss.id}')">
+          <span class="pill-title">${ss.title}</span>
+          <span class="pill-count">${GRP[ss.group]||'Nhóm '+ss.group} · ${ss.participants.length} người</span>
+        </div>`;
+      });
+      if (role === 'leader' && !past) {
+        html += `<div class="add-btn" onclick="prefillForm('${dk}',${s})">+ Thêm ca</div>`;
+      }
+      html += '</div></td>';
+    });
+    html += '</tr>';
+  }
+  html += '</tbody>';
+  tbl.innerHTML = html;
+}
+
+function prefillForm(date, slot) {
+  document.getElementById('f-date').value = date;
+  document.getElementById('f-slot').value = slot;
+  document.getElementById('f-title').focus();
+  document.getElementById('leader-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function openSession(id) {
+  activeSession = sessions.find(s => s.id === id);
+  if (!activeSession) return;
+  const s = activeSession;
+  const grpCls = GRP_CLS[s.group] || 'e-g1';
+
+  document.getElementById('m-title').textContent = s.title;
+  document.getElementById('m-meta').innerHTML = `
+    <span>📅 ${s.date}</span>
+    <span>⏰ ${SLOTS[s.slot]} (${SLOT_TIME[s.slot]})</span>
+    <span class="leg-pill ${grpCls}" style="font-size:10px">${GRP[s.group]||'Nhóm '+s.group}</span>`;
+  document.getElementById('m-content').textContent = s.content || '(Không có mô tả chi tiết)';
+  renderParticipants();
+
+  if (role === 'member') {
+    document.getElementById('m-join-area').innerHTML = `
+      <div class="join-row">
+        <input type="text" id="join-name" placeholder="Nhập tên của bạn..." />
+        <button class="btn btn-primary" onclick="joinSession()">Tham gia</button>
+      </div>`;
+  } else {
+    document.getElementById('m-join-area').innerHTML = `
+      <button class="btn btn-outline" style="width:100%;color:#C0392B;border-color:#C0392B" onclick="deleteSession('${s.id}')">Xóa ca làm việc này</button>`;
+  }
+  document.getElementById('modal-bg').classList.add('show');
+}
+
+function renderParticipants() {
+  const s = activeSession;
+  const list = document.getElementById('m-participants');
+  if (!s.participants || s.participants.length === 0) {
+    list.innerHTML = '<div class="empty-participants">Chưa có ai đăng ký ca này</div>';
+    return;
+  }
+  list.innerHTML = s.participants.map(p => `
+    <div class="participant-item">
+      <span class="p-name">${p.name}</span>
+      ${role === 'leader' ? `<span class="participant-del" onclick="removeParticipant('${p.id}')">Xóa</span>` : ''}
+    </div>`).join('');
+}
+
+async function joinSession() {
+  const name = document.getElementById('join-name').value.trim();
+  if (!name) { showToast('Vui lòng nhập tên!', true); return; }
+  try {
+    const res = await apiCall({ action: 'join', session_id: activeSession.id, name });
+    if (res.success) {
+      activeSession.participants.push({ id: res.id, name });
+      const idx = sessions.findIndex(s => s.id === activeSession.id);
+      if (idx > -1) sessions[idx].participants = activeSession.participants;
+      renderParticipants();
+      renderGrid();
+      document.getElementById('join-name').value = '';
+      showToast('Đã đăng ký tham gia!');
+    } else { showToast(res.error || 'Lỗi!', true); }
+  } catch(e) { showToast('Lỗi kết nối!', true); }
+}
+
+async function removeParticipant(pid) {
+  try {
+    await apiCall({ action: 'leave', id: pid });
+    activeSession.participants = activeSession.participants.filter(p => p.id !== pid);
+    const idx = sessions.findIndex(s => s.id === activeSession.id);
+    if (idx > -1) sessions[idx].participants = activeSession.participants;
+    renderParticipants(); renderGrid();
+    showToast('Đã xóa.');
+  } catch(e) { showToast('Lỗi!', true); }
+}
+
+async function deleteSession(id) {
+  if (!confirm('Xóa ca làm việc này?')) return;
+  try {
+    await apiCall({ action: 'deleteSession', id });
+    sessions = sessions.filter(s => s.id !== id);
+    closeModalDirect(); updateStats(); renderGrid();
+    showToast('Đã xóa ca làm việc.');
+  } catch(e) { showToast('Lỗi!', true); }
+}
+
+function closeModal(e) { if (e.target === document.getElementById('modal-bg')) closeModalDirect(); }
+function closeModalDirect() { document.getElementById('modal-bg').classList.remove('show'); activeSession = null; }
+
+function updateStats() {
+  const cnt = {1:0,2:0,3:0,4:0};
+  sessions.forEach(s => { s.participants.forEach(() => { if(cnt[s.group]!==undefined) cnt[s.group]++; }); });
+  [1,2,3,4].forEach(i => document.getElementById('s'+i).textContent = cnt[i]);
+}
+
+function showToast(msg, err=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (err?' err':'');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+document.getElementById('f-date') && (document.getElementById('f-date').value = dateKey(new Date()));
+</script>
+</body>
+</html>
