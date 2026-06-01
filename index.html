@@ -433,7 +433,7 @@ function prefillForm(date, slot) {
 }
 
 function openSession(id) {
-  activeSession = sessions.find(s => s.id === id);
+  activeSession = sessions.find(s => String(s.id) === String(id));
   if (!activeSession) return;
   const s = activeSession;
   const grpCls = GRP_CLS[s.group] || 'e-g1';
