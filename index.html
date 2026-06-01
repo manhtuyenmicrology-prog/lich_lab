@@ -175,7 +175,7 @@ body { font-family: 'Be Vietnam Pro', sans-serif; background: var(--bg); color: 
 </head>
 <body>
 
-<div class="loading-overlay" id="loading">Đang tải dữ liệu...</div>
+<div class="loading-overlay" id="loading" style="display:none">Đang tải dữ liệu...</div>
 
 <div class="top-bar">
   <div class="logo">LAB<span>.</span>SCHEDULE</div>
@@ -303,15 +303,15 @@ async function apiCall(params) {
 }
 
 async function loadAll() {
+  document.getElementById('loading').style.display = 'flex';
   try {
     const data = await apiCall({ action: 'getSessions' });
     sessions = Array.isArray(data) ? data : [];
     updateStats(); renderGrid();
-    document.getElementById('loading').style.display = 'none';
   } catch(e) {
-    document.getElementById('loading').style.display = 'none';
     showToast('Lỗi kết nối!', true);
   }
+  document.getElementById('loading').style.display = 'none';
 }
 
 function selectRole(r) {
