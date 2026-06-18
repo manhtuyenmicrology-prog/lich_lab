@@ -1,748 +1,164 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lab Schedule</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-:root {
-  --ink: #0F0E0C; --paper: #FAF8F4; --cream: #F2EFE8; --line: #E4E0D6; --muted: #9A9488;
-  --g1: #5B4FD4; --g1l: #EDEAFF; --g1m: #B8B0F0;
-  --g2: #1A7A5E; --g2l: #E0F5EE; --g2m: #7DCDB6;
-  --g3: #C4522A; --g3l: #FCEEE8; --g3m: #F0A882;
-  --g4: #B5287A; --g4l: #FCE8F3; --g4m: #E890C8;
-  --r: 4px;
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;font-size:14px;line-height:1.5;}
-body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.4;}
+const SS = SpreadsheetApp.getActiveSpreadsheet();
 
-/* TOPBAR */
-.topbar{position:sticky;top:0;z-index:100;background:rgba(250,248,244,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:52px;}
-.logo{font-family:'DM Serif Display',serif;font-size:17px;letter-spacing:-0.02em;display:flex;align-items:center;gap:8px;}
-.logo-dot{width:7px;height:7px;border-radius:50%;background:var(--g2);display:inline-block;animation:breathe 3s ease-in-out infinite;}
-@keyframes breathe{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
-.topbar-right{display:flex;align-items:center;gap:10px;}
-.conn-badge{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:0.04em;display:flex;align-items:center;gap:5px;}
-.conn-dot{width:5px;height:5px;border-radius:50%;background:var(--g2);}
-.role-chip{font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;cursor:pointer;transition:all 0.2s;border:1.5px solid var(--line);background:var(--cream);color:var(--muted);display:none;letter-spacing:0.02em;}
-.role-chip.leader{background:var(--g1l);color:var(--g1);border-color:var(--g1m);}
-.role-chip.member{background:var(--g2l);color:var(--g2);border-color:var(--g2m);}
-
-/* ROLE SCREEN */
-.role-screen{min-height:calc(100vh - 52px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem 2rem;background:radial-gradient(ellipse at 50% 40%,rgba(91,79,212,0.06) 0%,transparent 60%);}
-.role-eyebrow{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:16px;}
-.role-title{font-family:'DM Serif Display',serif;font-size:clamp(28px,5vw,44px);letter-spacing:-0.03em;line-height:1.1;text-align:center;margin-bottom:10px;}
-.role-title em{font-style:italic;color:var(--g1);}
-.role-sub{font-size:14px;color:var(--muted);margin-bottom:3rem;text-align:center;}
-.role-cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:460px;}
-.role-card{background:var(--paper);border:1.5px solid var(--line);border-radius:16px;padding:28px 22px;cursor:pointer;transition:all 0.25s cubic-bezier(0.34,1.56,0.64,1);position:relative;overflow:hidden;}
-.role-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity 0.25s;border-radius:14px;}
-.role-card.r-leader::before{background:radial-gradient(circle at 30% 30%,var(--g1l),transparent 70%);}
-.role-card.r-member::before{background:radial-gradient(circle at 30% 30%,var(--g2l),transparent 70%);}
-.role-card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,0.1);}
-.role-card:hover::before{opacity:1;}
-.role-card:hover.r-leader{border-color:var(--g1m);}
-.role-card:hover.r-member{border-color:var(--g2m);}
-.role-icon{font-size:28px;margin-bottom:14px;display:block;position:relative;}
-.role-card h3{font-family:'DM Serif Display',serif;font-size:18px;margin-bottom:6px;position:relative;}
-.role-card p{font-size:12px;color:var(--muted);line-height:1.5;position:relative;}
-.role-arrow{position:absolute;bottom:20px;right:20px;font-size:18px;color:var(--line);transition:all 0.2s;}
-.role-card:hover .role-arrow{color:var(--ink);transform:translate(2px,-2px);}
-
-/* MAIN */
-.main{max-width:1000px;margin:0 auto;padding:2.5rem 2rem;display:none;}
-.page-header{margin-bottom:2rem;}
-.page-eyebrow{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px;}
-.page-title{font-family:'DM Serif Display',serif;font-size:28px;letter-spacing:-0.02em;line-height:1.1;margin-bottom:4px;}
-.page-sub{font-size:13px;color:var(--muted);}
-
-/* STATS */
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:2rem;}
-.stat{background:var(--paper);border:1.5px solid var(--line);border-radius:12px;padding:14px 16px;position:relative;overflow:hidden;cursor:pointer;transition:all 0.2s;}
-.stat:hover{border-color:var(--ink);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.08);}
-.stat-accent{position:absolute;top:0;left:0;right:0;height:2px;border-radius:12px 12px 0 0;}
-.stat-num{font-family:'DM Serif Display',serif;font-size:28px;line-height:1;margin-bottom:2px;}
-.stat-name{font-size:11px;font-weight:600;margin-bottom:1px;}
-.stat-role{font-size:11px;color:var(--muted);}
-.stat-click-hint{font-size:9px;color:var(--muted);margin-top:6px;font-family:'DM Mono',monospace;letter-spacing:0.04em;opacity:0;transition:opacity 0.2s;}
-.stat:hover .stat-click-hint{opacity:1;}
-
-/* FORM */
-.form-card{background:var(--cream);border:1.5px solid var(--line);border-radius:14px;padding:1.5rem;margin-bottom:2rem;}
-.form-eyebrow{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:1.25rem;display:flex;align-items:center;gap:8px;}
-.form-eyebrow::after{content:'';flex:1;height:1px;background:var(--line);}
-.form-row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:10px;}
-.field{display:flex;flex-direction:column;gap:5px;}
-.field label{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0.04em;text-transform:uppercase;}
-.field input,.field select,.field textarea{width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--ink);background:var(--paper);outline:none;transition:all 0.15s;appearance:none;}
-.field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239A9488' fill='none' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;}
-.field textarea{resize:vertical;min-height:70px;}
-.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--g1);background:#fff;box-shadow:0 0 0 3px rgba(91,79,212,0.08);}
-.btn-create{width:100%;padding:11px;border:none;border-radius:8px;background:var(--ink);color:var(--paper);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;letter-spacing:0.02em;margin-top:10px;}
-.btn-create:hover{background:#2a2820;transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.2);}
-.btn-create:disabled{opacity:0.5;cursor:not-allowed;transform:none;box-shadow:none;}
-
-/* CALENDAR */
-.calendar-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px;}
-.week-tabs{display:flex;gap:4px;background:var(--cream);border:1.5px solid var(--line);border-radius:10px;padding:3px;}
-.wtab{padding:5px 14px;border-radius:7px;border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;transition:all 0.15s;}
-.wtab.active{background:var(--paper);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,0.08);}
-.legend{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
-.leg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);}
-.leg-sq{width:8px;height:8px;border-radius:2px;}
-
-/* GRID */
-.grid-wrap{overflow-x:auto;border-radius:14px;border:1.5px solid var(--line);}
-.schedule{width:100%;border-collapse:collapse;min-width:620px;background:var(--paper);}
-.schedule thead th{font-family:'DM Mono',monospace;font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;padding:12px 8px;text-align:center;background:var(--cream);border-bottom:1.5px solid var(--line);}
-.schedule thead th.th-today{background:#FFFBEA;color:#7A5C00;}
-.th-date{display:block;font-family:'DM Serif Display',serif;font-size:16px;letter-spacing:0;color:var(--ink);line-height:1;margin-top:2px;}
-.th-today .th-date{color:#7A5C00;}
-.schedule td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);vertical-align:top;padding:5px;}
-.schedule td:last-child{border-right:none;}
-.schedule tr:last-child td{border-bottom:none;}
-.slot-label{font-family:'DM Mono',monospace;font-size:9px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;text-align:center;padding:8px 6px !important;background:var(--cream);width:52px;white-space:nowrap;writing-mode:vertical-lr;transform:rotate(180deg);vertical-align:middle !important;}
-.slot-time{display:block;font-size:8px;opacity:0.7;margin-top:2px;writing-mode:vertical-lr;transform:rotate(180deg);}
-.cell{min-height:64px;display:flex;flex-direction:column;gap:4px;padding:3px;}
-.cell.past{opacity:0.35;pointer-events:none;}
-.cell.today-col{background:rgba(255,251,234,0.6);}
-.session-card{border-radius:7px;padding:6px 8px;cursor:pointer;transition:all 0.15s;border:1px solid transparent;position:relative;overflow:hidden;}
-.session-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px;}
-.session-card:hover{transform:translateY(-1px);box-shadow:0 3px 10px rgba(0,0,0,0.1);}
-.sc-title{font-size:11px;font-weight:600;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.sc-meta{font-size:10px;opacity:0.7;margin-top:2px;display:flex;align-items:center;gap:4px;}
-.sc-count{font-family:'DM Mono',monospace;}
-.sc-g1{background:var(--g1l);color:var(--g1);border-color:var(--g1m);}
-.sc-g1::before{background:var(--g1);}
-.sc-g2{background:var(--g2l);color:var(--g2);border-color:var(--g2m);}
-.sc-g2::before{background:var(--g2);}
-.sc-g3{background:var(--g3l);color:var(--g3);border-color:var(--g3m);}
-.sc-g3::before{background:var(--g3);}
-.sc-g4{background:var(--g4l);color:var(--g4);border-color:var(--g4m);}
-.sc-g4::before{background:var(--g4);}
-.add-btn{border:1.5px dashed var(--line);border-radius:7px;padding:5px 8px;font-size:10px;color:var(--muted);cursor:pointer;text-align:center;transition:all 0.15s;background:transparent;font-family:'DM Mono',monospace;letter-spacing:0.04em;}
-.add-btn:hover{border-color:var(--g1);color:var(--g1);background:var(--g1l);}
-
-/* MODAL CHUNG */
-.modal-bg{position:fixed;inset:0;z-index:500;background:rgba(15,14,12,0.5);backdrop-filter:blur(4px);display:flex;align-items:flex-end;justify-content:center;padding:0;opacity:0;pointer-events:none;transition:opacity 0.25s;}
-@media(min-width:640px){.modal-bg{align-items:center;padding:1rem;}}
-.modal-bg.show{opacity:1;pointer-events:all;}
-.modal{background:var(--paper);width:100%;max-width:480px;border-radius:20px 20px 0 0;padding:0;transform:translateY(30px);transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1);overflow:hidden;max-height:90vh;display:flex;flex-direction:column;}
-@media(min-width:640px){.modal{border-radius:20px;transform:translateY(20px) scale(0.97);}}
-.modal-bg.show .modal{transform:translateY(0) scale(1);}
-.modal-handle{width:36px;height:4px;background:var(--line);border-radius:2px;margin:12px auto 0;flex-shrink:0;}
-@media(min-width:640px){.modal-handle{display:none;}}
-.modal-close{background:var(--cream);border:1.5px solid var(--line);border-radius:8px;width:30px;height:30px;font-size:14px;cursor:pointer;color:var(--muted);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.15s;}
-.modal-close:hover{background:var(--line);color:var(--ink);}
-.modal-body{padding:16px 20px 24px;overflow-y:auto;flex:1;}
-
-/* MODAL SESSION (lịch) */
-.modal-header{padding:16px 20px 0;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-shrink:0;}
-.modal-group-chip{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:0.04em;margin-bottom:6px;display:inline-flex;}
-.modal-title{font-family:'DM Serif Display',serif;font-size:20px;letter-spacing:-0.02em;line-height:1.2;}
-.modal-meta{padding:8px 20px 0;display:flex;gap:12px;flex-wrap:wrap;flex-shrink:0;}
-.modal-meta-item{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px;}
-.modal-content-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;}
-.modal-content-box{background:var(--cream);border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.65;color:var(--ink);white-space:pre-wrap;margin-bottom:16px;border:1px solid var(--line);}
-.participants-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
-.participants-count{font-family:'DM Serif Display',serif;font-size:16px;color:var(--ink);}
-.participant-list{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
-.p-item{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--cream);border-radius:8px;border:1px solid var(--line);}
-.p-name{font-size:13px;font-weight:500;}
-.p-del{font-size:11px;cursor:pointer;color:var(--muted);padding:2px 6px;border-radius:4px;transition:all 0.15s;}
-.p-del:hover{background:#FFE8E8;color:#C0392B;}
-.p-empty{font-size:13px;color:var(--muted);text-align:center;padding:16px 0;font-style:italic;}
-.join-row{display:flex;gap:8px;}
-.join-input{flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--paper);outline:none;transition:all 0.15s;color:var(--ink);}
-.join-input:focus{border-color:var(--g2);box-shadow:0 0 0 3px rgba(26,122,94,0.08);}
-.btn-join{padding:10px 18px;background:var(--g2);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s;white-space:nowrap;}
-.btn-join:hover{background:#155f49;}
-.edit-actions{display:flex;gap:8px;margin-bottom:10px;}
-.btn-edit{flex:1;padding:9px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;border:1.5px solid var(--line);background:var(--cream);color:var(--ink);}
-.btn-edit:hover{background:var(--line);}
-.btn-delete{flex:1;padding:9px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;border:1.5px solid #F5C0B0;background:#FFF0EC;color:var(--g3);}
-.btn-delete:hover{background:#FFE0D5;}
-.edit-form{background:var(--cream);border:1.5px solid var(--line);border-radius:10px;padding:14px;display:none;flex-direction:column;gap:10px;}
-.edit-form.open{display:flex;}
-.edit-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
-.btn-save{padding:9px;background:var(--ink);color:var(--paper);border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s;}
-.btn-save:hover{opacity:0.85;}
-
-/* MODAL NHÓM (group info) */
-.gmodal-bg{position:fixed;inset:0;z-index:500;background:rgba(15,14,12,0.5);backdrop-filter:blur(4px);display:flex;align-items:flex-end;justify-content:center;padding:0;opacity:0;pointer-events:none;transition:opacity 0.25s;}
-@media(min-width:640px){.gmodal-bg{align-items:center;padding:1rem;}}
-.gmodal-bg.show{opacity:1;pointer-events:all;}
-.gmodal{background:var(--paper);width:100%;max-width:500px;border-radius:20px 20px 0 0;transform:translateY(30px);transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1);overflow:hidden;max-height:90vh;display:flex;flex-direction:column;}
-@media(min-width:640px){.gmodal{border-radius:20px;transform:translateY(20px) scale(0.97);}}
-.gmodal-bg.show .gmodal{transform:translateY(0) scale(1);}
-
-.gmodal-banner{height:80px;position:relative;flex-shrink:0;}
-.gmodal-banner-close{position:absolute;top:12px;right:12px;background:rgba(255,255,255,0.8);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.5);border-radius:8px;width:30px;height:30px;font-size:14px;cursor:pointer;color:var(--ink);display:flex;align-items:center;justify-content:center;}
-.gmodal-avatar-wrap{position:absolute;bottom:-44px;left:20px;}
-.gmodal-avatar{width:88px;height:88px;border-radius:50%;border:4px solid var(--paper);object-fit:cover;background:var(--cream);display:flex;align-items:center;justify-content:center;font-size:36px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.12);}
-.gmodal-avatar img{width:100%;height:100%;object-fit:cover;}
-
-.gmodal-body{padding:56px 20px 24px;overflow-y:auto;flex:1;}
-.gmodal-name{font-family:'DM Serif Display',serif;font-size:22px;letter-spacing:-0.02em;margin-bottom:4px;}
-.gmodal-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
-.gmodal-tag{font-family:'DM Mono',monospace;font-size:10px;padding:3px 10px;border-radius:20px;background:var(--cream);border:1px solid var(--line);color:var(--muted);letter-spacing:0.04em;}
-.gmodal-section{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;margin-top:16px;}
-.gmodal-research{font-size:13px;line-height:1.65;color:var(--ink);background:var(--cream);border-radius:10px;padding:12px 14px;border:1px solid var(--line);}
-.gmodal-contact{font-size:13px;color:var(--g2);font-weight:500;}
-
-.gmodal-members{display:flex;flex-direction:column;gap:6px;}
-.gm-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--cream);border-radius:8px;border:1px solid var(--line);}
-.gm-avatar{width:28px;height:28px;border-radius:50%;background:var(--line);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;color:var(--muted);}
-.gm-name{font-size:13px;font-weight:500;flex:1;}
-.gm-tag{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;}
-.gm-empty{font-size:13px;color:var(--muted);font-style:italic;text-align:center;padding:12px 0;}
-
-/* TOAST */
-.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--ink);color:var(--paper);padding:10px 20px;border-radius:10px;font-family:'DM Mono',monospace;font-size:12px;opacity:0;transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);pointer-events:none;z-index:999;white-space:nowrap;letter-spacing:0.02em;}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-.toast.err{background:var(--g3);}
-
-.loading-overlay{position:fixed;inset:0;background:rgba(250,248,244,0.9);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:12px;}
-.loading-spinner{width:24px;height:24px;border:2px solid var(--line);border-top-color:var(--g1);border-radius:50%;animation:spin 0.8s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg)}}
-.loading-text{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:0.06em;}
-
-@media(max-width:640px){
-  .form-row{grid-template-columns:1fr 1fr;}
-  .stats{grid-template-columns:1fr 1fr;}
-  .role-cards{grid-template-columns:1fr;max-width:280px;}
-  .main{padding:1.5rem 1rem;}
-}
-</style>
-</head>
-<body>
-
-<div class="loading-overlay" id="loading" style="display:none">
-  <div class="loading-spinner"></div>
-  <div class="loading-text">ĐANG TẢI DỮ LIỆU</div>
-</div>
-
-<div class="topbar">
-  <div class="logo"><span class="logo-dot"></span>Lab Schedule</div>
-  <div class="topbar-right">
-    <div class="conn-badge"><span class="conn-dot"></span>Google Sheets</div>
-    <div class="role-chip" id="role-chip" onclick="switchRole()"></div>
-  </div>
-</div>
-
-<!-- ROLE SCREEN -->
-<div class="role-screen" id="role-screen">
-  <div class="role-eyebrow">Microbiology Lab · 2026</div>
-  <h1 class="role-title">Chào mừng đến<br><em>phòng thí nghiệm</em></h1>
-  <p class="role-sub">Chọn vai trò của bạn để tiếp tục</p>
-  <div class="role-cards">
-    <div class="role-card r-leader" onclick="selectRole('leader')">
-      <span class="role-icon">🔬</span>
-      <h3>Trưởng nhóm</h3>
-      <p>Tạo ca làm việc và điền nội dung công việc cho thành viên</p>
-      <span class="role-arrow">↗</span>
-    </div>
-    <div class="role-card r-member" onclick="selectRole('member')">
-      <span class="role-icon">🧪</span>
-      <h3>Thành viên</h3>
-      <p>Xem lịch và đăng ký tham gia ca làm việc</p>
-      <span class="role-arrow">↗</span>
-    </div>
-  </div>
-</div>
-
-<!-- MAIN -->
-<div class="main" id="main">
-  <div class="page-header">
-    <div class="page-eyebrow" id="page-eyebrow">THÀNH VIÊN</div>
-    <h1 class="page-title">Lịch đăng ký lên lab</h1>
-    <p class="page-sub" id="page-sub">Bấm vào ca để xem chi tiết và đăng ký tham gia</p>
-  </div>
-
-  <div class="stats">
-    <div class="stat" onclick="openGroupModal(1)">
-      <div class="stat-accent" style="background:var(--g1)"></div>
-      <div class="stat-num" id="s1">—</div>
-      <div class="stat-name">Nhật Linh</div>
-      <div class="stat-role">Đồ uống</div>
-      <div class="stat-click-hint">↗ XEM NHÓM</div>
-    </div>
-    <div class="stat" onclick="openGroupModal(2)">
-      <div class="stat-accent" style="background:var(--g2)"></div>
-      <div class="stat-num" id="s2">—</div>
-      <div class="stat-name">Uyên</div>
-      <div class="stat-role">Probiotic tía tô</div>
-      <div class="stat-click-hint">↗ XEM NHÓM</div>
-    </div>
-    <div class="stat" onclick="openGroupModal(3)">
-      <div class="stat-accent" style="background:var(--g3)"></div>
-      <div class="stat-num" id="s3">—</div>
-      <div class="stat-name">Trang</div>
-      <div class="stat-role">Enzyme</div>
-      <div class="stat-click-hint">↗ XEM NHÓM</div>
-    </div>
-    <div class="stat" onclick="openGroupModal(4)">
-      <div class="stat-accent" style="background:var(--g4)"></div>
-      <div class="stat-num" id="s4">—</div>
-      <div class="stat-name">NCS. Tuyền</div>
-      <div class="stat-role">Nghiên cứu sinh</div>
-      <div class="stat-click-hint">↗ XEM NHÓM</div>
-    </div>
-  </div>
-
-  <!-- LEADER FORM -->
-  <div class="form-card" id="leader-form" style="display:none">
-    <div class="form-eyebrow">Tạo ca làm việc mới</div>
-    <div class="form-row">
-      <div class="field"><label>Nhóm</label>
-        <select id="f-group">
-          <option value="Nhật Linh">Nhật Linh · Đồ uống</option>
-          <option value="Uyên">Uyên · Probiotic tía tô</option>
-          <option value="Trang">Trang · Enzyme</option>
-          <option value="NCS. Tuyền">NCS. Tuyền</option>
-        </select>
-      </div>
-      <div class="field"><label>Ngày</label><input type="date" id="f-date" /></div>
-      <div class="field"><label>Ca làm việc</label>
-        <select id="f-slot">
-          <option value="0">Sáng (7:00–11:30)</option>
-          <option value="1">Chiều (13:00–17:30)</option>
-          <option value="2">Tối (18:00–21:00)</option>
-        </select>
-      </div>
-      <div class="field"><label>Tiêu đề</label><input type="text" id="f-title" placeholder="VD: Phân lập LAB từ tía tô" /></div>
-    </div>
-    <div class="field"><label>Nội dung chi tiết</label><textarea id="f-content" placeholder="Mô tả công việc, dụng cụ cần chuẩn bị, lưu ý..."></textarea></div>
-    <button class="btn-create" id="btn-create" onclick="createSession()">+ Tạo ca làm việc</button>
-  </div>
-
-  <div class="calendar-header">
-    <div class="legend">
-      <div class="leg"><div class="leg-sq" style="background:var(--g1)"></div>Nhật Linh</div>
-      <div class="leg"><div class="leg-sq" style="background:var(--g2)"></div>Uyên</div>
-      <div class="leg"><div class="leg-sq" style="background:var(--g3)"></div>Trang</div>
-      <div class="leg"><div class="leg-sq" style="background:var(--g4)"></div>NCS. Tuyền</div>
-    </div>
-    <div class="week-tabs">
-      <button class="wtab active" data-w="0">Tuần này</button>
-      <button class="wtab" data-w="1">Tuần sau</button>
-      <button class="wtab" data-w="2">+2 tuần</button>
-    </div>
-  </div>
-
-  <div class="grid-wrap">
-    <table class="schedule" id="schedule"></table>
-  </div>
-</div>
-
-<!-- MODAL SESSION -->
-<div class="modal-bg" id="modal-bg" onclick="bgClose(event)">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-header">
-      <div style="flex:1;min-width:0">
-        <div class="modal-group-chip" id="m-chip"></div>
-        <div class="modal-title" id="m-title"></div>
-      </div>
-      <button class="modal-close" onclick="closeModal()">✕</button>
-    </div>
-    <div class="modal-meta" id="m-meta"></div>
-    <div class="modal-body">
-      <div class="modal-content-label">Nội dung công việc</div>
-      <div class="modal-content-box" id="m-content"></div>
-      <div class="participants-label">
-        <span>Người tham gia</span>
-        <span class="participants-count" id="m-pcount">0</span>
-      </div>
-      <div class="participant-list" id="m-plist"></div>
-      <div id="m-actions"></div>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL NHÓM -->
-<div class="gmodal-bg" id="gmodal-bg" onclick="gBgClose(event)">
-  <div class="gmodal">
-    <div class="modal-handle"></div>
-    <div class="gmodal-banner" id="gmodal-banner">
-      <button class="gmodal-banner-close" onclick="closeGroupModal()">✕</button>
-      <div class="gmodal-avatar-wrap">
-        <div class="gmodal-avatar" id="gmodal-avatar"></div>
-      </div>
-    </div>
-    <div class="gmodal-body">
-      <div class="gmodal-name" id="gmodal-name"></div>
-      <div class="gmodal-tags" id="gmodal-tags"></div>
-      <div class="gmodal-section">Hướng nghiên cứu</div>
-      <div class="gmodal-research" id="gmodal-research"></div>
-      <div class="gmodal-section">Liên hệ</div>
-      <div class="gmodal-contact" id="gmodal-contact"></div>
-      <div class="gmodal-section">Thành viên nhóm</div>
-      <div class="gmodal-members" id="gmodal-members"></div>
-    </div>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<script>
-const API = 'https://script.google.com/macros/s/AKfycbya8EFKolL0P3n-XU2JGYz1HweCy86MkzU83eTprdBK7OABWYfO4HlKwV6u_zNDf1Cq/exec';
-const DAYS=['T2','T3','T4','T5','T6','T7','CN'];
-const SLOTS=['SÁNG','CHIỀU','TỐI'];
-const SLOT_TIME=['7:00–11:30','13:00–17:30','18:00–21:00'];
-const GRP={1:'Nhật Linh',2:'Uyên',3:'Trang',4:'NCS. Tuyền'};
-const GRP_CLS={1:'sc-g1',2:'sc-g2',3:'sc-g3',4:'sc-g4'};
-const GRP_COLOR={1:'var(--g1)',2:'var(--g2)',3:'var(--g3)',4:'var(--g4)'};
-const GRP_LIGHT={1:'var(--g1l)',2:'var(--g2l)',3:'var(--g3l)',4:'var(--g4l)'};
-
-let sessions=[], members=[], teamMembers=[], currentWeek=0, role=null, activeSession=null;
-
-async function api(p){
-  const r=await fetch(API+'?'+new URLSearchParams(p).toString());
-  return r.json();
-}
-
-async function loadAll(){
-  document.getElementById('loading').style.display='flex';
-  try{
-    const [d,m,tm]=await Promise.all([
-      api({action:'getSessions'}),
-      api({action:'getMembers'}),
-      api({action:'getTeamMembers'})
-    ]);
-    sessions=Array.isArray(d)?d:[];
-    members=Array.isArray(m)?m:[];
-    teamMembers=Array.isArray(tm)?tm:[];
-    updateStats();renderGrid();
-  } catch(e){toast('Lỗi kết nối!',1);}
-  document.getElementById('loading').style.display='none';
-}
-
-function selectRole(r){
-  role=r;
-  document.getElementById('role-screen').style.display='none';
-  document.getElementById('main').style.display='block';
-  const chip=document.getElementById('role-chip');
-  chip.style.display='block';
-  if(r==='leader'){
-    chip.textContent='🔬 Trưởng nhóm';chip.className='role-chip leader';
-    document.getElementById('leader-form').style.display='block';
-    document.getElementById('page-eyebrow').textContent='TRƯỞNG NHÓM';
-    document.getElementById('page-sub').textContent='Tạo ca làm việc và quản lý lịch lab';
-  } else {
-    chip.textContent='🧪 Thành viên';chip.className='role-chip member';
-    document.getElementById('leader-form').style.display='none';
-    document.getElementById('page-eyebrow').textContent='THÀNH VIÊN';
-    document.getElementById('page-sub').textContent='Bấm vào ca để xem chi tiết và đăng ký tham gia';
+function doGet(e) {
+  const p = e.parameter;
+  const out = ContentService.createTextOutput();
+  out.setMimeType(ContentService.MimeType.JSON);
+  try {
+    let r;
+    if (p.action === 'getSessions') r = getSessions();
+    else if (p.action === 'addSession') r = addSession(p);
+    else if (p.action === 'deleteSession') r = deleteSession(p.id);
+    else if (p.action === 'updateSession') r = updateSession(p);
+    else if (p.action === 'join') r = joinSession(p);
+    else if (p.action === 'leave') r = leaveSession(p);
+    else if (p.action === 'getMembers') r = getMembers();
+    else if (p.action === 'getTeamMembers') r = getTeamMembers();
+    else if (p.action === 'getFund') r = getFund();
+    else if (p.action === 'addTransaction') r = addTransaction(p);
+    else if (p.action === 'deleteTransaction') r = deleteTransaction(p.id);
+    else r = { error: 'Unknown action' };
+    out.setContent(JSON.stringify(r));
+  } catch(err) {
+    out.setContent(JSON.stringify({ error: err.message }));
   }
-  loadAll();
+  return out;
 }
 
-function switchRole(){
-  role=null;sessions=[];members=[];teamMembers=[];
-  document.getElementById('role-screen').style.display='flex';
-  document.getElementById('main').style.display='none';
-  document.getElementById('role-chip').style.display='none';
-}
+function doPost(e) { return doGet(e); }
 
-async function createSession(){
-  const grp=document.getElementById('f-group').value;
-  const date=document.getElementById('f-date').value;
-  const slot=document.getElementById('f-slot').value;
-  const title=document.getElementById('f-title').value.trim();
-  const content=document.getElementById('f-content').value.trim();
-  if(!date){toast('Vui lòng chọn ngày!',1);return;}
-  if(!title){toast('Vui lòng nhập tiêu đề!',1);return;}
-  const today=new Date();today.setHours(0,0,0,0);
-  if(new Date(date)<today){toast('Không thể tạo ca cho ngày đã qua!',1);return;}
-  const btn=document.getElementById('btn-create');
-  btn.disabled=true;btn.textContent='Đang lưu...';
-  try{
-    const r=await api({action:'addSession',group:grp,date,slot,title,content});
-    if(r.success){
-      // find group number from name
-      const grpNum=Object.entries(GRP).find(([k,v])=>v===grp)?.[0]||1;
-      sessions.push({id:r.id,group:+grpNum,date,slot:+slot,title,content,participants:[]});
-      document.getElementById('f-title').value='';
-      document.getElementById('f-content').value='';
-      updateStats();renderGrid();toast('Đã tạo ca làm việc!');
-    } else toast('Lỗi: '+r.error,1);
-  } catch(e){toast('Lỗi kết nối!',1);}
-  btn.disabled=false;btn.textContent='+ Tạo ca làm việc';
-}
-
-function getMonday(off){
-  const d=new Date();const day=d.getDay()||7;
-  d.setDate(d.getDate()-day+1+off*7);d.setHours(0,0,0,0);return d;
-}
-function dk(d){return d.toISOString().slice(0,10);}
-function fmtD(d){return d.getDate()+'/'+(d.getMonth()+1);}
-
-function setWeek(w){
-  currentWeek=w;
-  document.querySelectorAll('.wtab').forEach(b=>b.classList.toggle('active',+b.dataset.w===w));
-  renderGrid();
-}
-document.querySelectorAll('.wtab').forEach(b=>b.addEventListener('click',()=>setWeek(+b.dataset.w)));
-
-function grpFromSession(ss){
-  // group stored as name string or number
-  if(typeof ss.group==='number') return ss.group;
-  const found=Object.entries(GRP).find(([k,v])=>v===ss.group);
-  return found?+found[0]:1;
-}
-
-function renderGrid(){
-  const monday=getMonday(currentWeek);
-  const today=new Date();today.setHours(0,0,0,0);
-  const todayKey=dk(today);
-  const tbl=document.getElementById('schedule');
-  const dates=Array.from({length:7},(_,i)=>{const d=new Date(monday);d.setDate(monday.getDate()+i);return d;});
-  let html='<thead><tr><th style="width:52px"></th>';
-  dates.forEach((d,i)=>{
-    const isT=dk(d)===todayKey;
-    html+=`<th class="${isT?'th-today':''}">${DAYS[i]}<span class="th-date">${fmtD(d)}</span></th>`;
-  });
-  html+='</tr></thead><tbody>';
-  for(let s=0;s<3;s++){
-    html+=`<tr><td class="slot-label">${SLOTS[s]}<span class="slot-time">${SLOT_TIME[s]}</span></td>`;
-    dates.forEach(d=>{
-      const key=dk(d);const isT=key===todayKey;const past=d<today;
-      const ds=sessions.filter(ss=>ss.date===key&&ss.slot==s);
-      html+=`<td><div class="cell${past?' past':''}${isT?' today-col':''}">`;
-      ds.forEach(ss=>{
-        const gn=grpFromSession(ss);
-        const cls=GRP_CLS[gn]||'sc-g1';
-        const gname=GRP[gn]||ss.group;
-        html+=`<div class="session-card ${cls}" onclick="openSession('${ss.id}')">
-          <div class="sc-title">${ss.title}</div>
-          <div class="sc-meta"><span>${gname}</span><span class="sc-count">· ${ss.participants.length} người</span></div>
-        </div>`;
-      });
-      if(role==='leader'&&!past){
-        html+=`<div class="add-btn" onclick="prefill('${key}',${s})">+ thêm ca</div>`;
-      }
-      html+='</div></td>';
-    });
-    html+='</tr>';
+function getSheet(name) {
+  let s = SS.getSheetByName(name);
+  if (!s) {
+    s = SS.insertSheet(name);
+    if (name === 'sessions') s.appendRow(['id','group','date','slot','title','content','created_at']);
+    if (name === 'participants') s.appendRow(['id','session_id','name','joined_at']);
+    if (name === 'members') s.appendRow(['group','name','role','year','research','contact','avatar_url']);
+    if (name === 'team_members') s.appendRow(['group','name','role','year']);
+    if (name === 'fund') s.appendRow(['id','type','amount','desc','date','created_at']);
   }
-  html+='</tbody>';
-  tbl.innerHTML=html;
+  return s;
 }
 
-function prefill(date,slot){
-  document.getElementById('f-date').value=date;
-  document.getElementById('f-slot').value=slot;
-  document.getElementById('f-title').focus();
-  document.getElementById('leader-form').scrollIntoView({behavior:'smooth',block:'start'});
-}
-
-function openSession(id){
-  activeSession=sessions.find(s=>String(s.id)===String(id));
-  if(!activeSession)return;
-  const s=activeSession;
-  const gn=grpFromSession(s);
-  const cls=GRP_CLS[gn]||'sc-g1';
-  document.getElementById('m-chip').textContent=GRP[gn]||s.group;
-  document.getElementById('m-chip').className='modal-group-chip '+cls;
-  document.getElementById('m-title').textContent=s.title;
-  document.getElementById('m-meta').innerHTML=`
-    <div class="modal-meta-item">📅 ${s.date}</div>
-    <div class="modal-meta-item">⏰ ${SLOTS[s.slot].charAt(0)+SLOTS[s.slot].slice(1).toLowerCase()} · ${SLOT_TIME[s.slot]}</div>`;
-  document.getElementById('m-content').textContent=s.content||'(Không có mô tả chi tiết)';
-  renderPList();
-  if(role==='member'){
-    document.getElementById('m-actions').innerHTML=`
-      <div class="join-row">
-        <input class="join-input" type="text" id="join-name" placeholder="Nhập tên của bạn..." />
-        <button class="btn-join" onclick="joinSession()">Tham gia</button>
-      </div>`;
-  } else {
-    document.getElementById('m-actions').innerHTML=`
-      <div class="edit-actions">
-        <button class="btn-edit" onclick="toggleEdit()">✏️ Sửa ca</button>
-        <button class="btn-delete" onclick="deleteSession('${s.id}')">🗑️ Xóa ca</button>
-      </div>
-      <div class="edit-form" id="edit-form">
-        <div class="field"><label>Tiêu đề</label><input type="text" id="e-title" value="${s.title}" /></div>
-        <div class="edit-grid">
-          <div class="field"><label>Nhóm</label>
-            <select id="e-group">
-              <option value="Nhật Linh" ${gn==1?'selected':''}>Nhật Linh</option>
-              <option value="Uyên" ${gn==2?'selected':''}>Uyên</option>
-              <option value="Trang" ${gn==3?'selected':''}>Trang</option>
-              <option value="NCS. Tuyền" ${gn==4?'selected':''}>NCS. Tuyền</option>
-            </select>
-          </div>
-          <div class="field"><label>Ngày</label><input type="date" id="e-date" value="${s.date}" /></div>
-          <div class="field"><label>Ca</label>
-            <select id="e-slot">
-              <option value="0" ${s.slot==0?'selected':''}>Sáng</option>
-              <option value="1" ${s.slot==1?'selected':''}>Chiều</option>
-              <option value="2" ${s.slot==2?'selected':''}>Tối</option>
-            </select>
-          </div>
-        </div>
-        <div class="field"><label>Nội dung</label><textarea id="e-content" style="min-height:60px">${s.content||''}</textarea></div>
-        <button class="btn-save" onclick="saveEdit()">Lưu thay đổi</button>
-      </div>`;
+// Fix timezone: dùng timezone Việt Nam (UTC+7)
+function fmtDate(val) {
+  if (val instanceof Date) {
+    // Chuyển sang giờ VN
+    const vn = new Date(val.getTime() + 7 * 60 * 60 * 1000);
+    const y = vn.getUTCFullYear();
+    const m = String(vn.getUTCMonth()+1).padStart(2,'0');
+    const d = String(vn.getUTCDate()).padStart(2,'0');
+    return y + '-' + m + '-' + d;
   }
-  document.getElementById('modal-bg').classList.add('show');
+  if (typeof val === 'string') return val.slice(0,10);
+  return String(val).slice(0,10);
 }
 
-function renderPList(){
-  const s=activeSession;
-  document.getElementById('m-pcount').textContent=s.participants.length;
-  const list=document.getElementById('m-plist');
-  if(!s.participants.length){list.innerHTML='<div class="p-empty">Chưa có ai đăng ký ca này</div>';return;}
-  list.innerHTML=s.participants.map(p=>`
-    <div class="p-item">
-      <span class="p-name">${p.name}</span>
-      ${role==='leader'?`<span class="p-del" onclick="removeP('${p.id}')">Xóa</span>`:''}
-    </div>`).join('');
+function getSessions() {
+  const sSheet = getSheet('sessions');
+  const pSheet = getSheet('participants');
+  const sData = sSheet.getDataRange().getValues().slice(1).filter(r => r[0] !== '');
+  const pData = pSheet.getDataRange().getValues().slice(1).filter(r => r[0] !== '');
+  return sData.map(r => ({
+    id: r[0], group: r[1], date: fmtDate(r[2]), slot: r[3],
+    title: r[4], content: r[5], created_at: r[6],
+    participants: pData.filter(p => p[1] == r[0]).map(p => ({ id: p[0], name: p[2] }))
+  }));
 }
 
-async function joinSession(){
-  const name=document.getElementById('join-name').value.trim();
-  if(!name){toast('Vui lòng nhập tên!',1);return;}
-  try{
-    const r=await api({action:'join',session_id:activeSession.id,name});
-    if(r.success){
-      activeSession.participants.push({id:r.id,name});
-      const idx=sessions.findIndex(s=>String(s.id)===String(activeSession.id));
-      if(idx>-1)sessions[idx].participants=activeSession.participants;
-      renderPList();renderGrid();
-      document.getElementById('join-name').value='';
-      toast('Đã đăng ký tham gia!');
-    } else toast(r.error||'Lỗi!',1);
-  } catch(e){toast('Lỗi kết nối!',1);}
+function addSession(p) {
+  const sheet = getSheet('sessions');
+  const id = Date.now().toString();
+  sheet.appendRow([id, p.group, p.date, p.slot, p.title, p.content || '', new Date().toISOString()]);
+  return { success: true, id };
 }
 
-async function removeP(pid){
-  try{
-    await api({action:'leave',id:pid});
-    activeSession.participants=activeSession.participants.filter(p=>p.id!=pid);
-    const idx=sessions.findIndex(s=>String(s.id)===String(activeSession.id));
-    if(idx>-1)sessions[idx].participants=activeSession.participants;
-    renderPList();renderGrid();toast('Đã xóa.');
-  } catch(e){toast('Lỗi!',1);}
-}
-
-async function deleteSession(id){
-  if(!confirm('Xóa ca làm việc này?'))return;
-  try{
-    await api({action:'deleteSession',id});
-    sessions=sessions.filter(s=>String(s.id)!==String(id));
-    closeModal();updateStats();renderGrid();toast('Đã xóa ca làm việc.');
-  } catch(e){toast('Lỗi!',1);}
-}
-
-function toggleEdit(){document.getElementById('edit-form').classList.toggle('open');}
-
-async function saveEdit(){
-  const title=document.getElementById('e-title').value.trim();
-  const group=document.getElementById('e-group').value;
-  const date=document.getElementById('e-date').value;
-  const slot=document.getElementById('e-slot').value;
-  const content=document.getElementById('e-content').value.trim();
-  if(!title){toast('Vui lòng nhập tiêu đề!',1);return;}
-  try{
-    const r=await api({action:'updateSession',id:activeSession.id,title,group,date,slot,content});
-    if(r.success){
-      const grpNum=+Object.entries(GRP).find(([k,v])=>v===group)?.[0]||1;
-      const idx=sessions.findIndex(s=>String(s.id)===String(activeSession.id));
-      if(idx>-1){sessions[idx]={...sessions[idx],title,group:grpNum,date,slot:+slot,content};activeSession=sessions[idx];}
-      const cls=GRP_CLS[grpNum]||'sc-g1';
-      document.getElementById('m-title').textContent=title;
-      document.getElementById('m-chip').textContent=GRP[grpNum];
-      document.getElementById('m-chip').className='modal-group-chip '+cls;
-      document.getElementById('m-meta').innerHTML=`
-        <div class="modal-meta-item">📅 ${date}</div>
-        <div class="modal-meta-item">⏰ ${SLOTS[+slot].charAt(0)+SLOTS[+slot].slice(1).toLowerCase()} · ${SLOT_TIME[+slot]}</div>`;
-      document.getElementById('m-content').textContent=content||'(Không có mô tả chi tiết)';
-      document.getElementById('edit-form').classList.remove('open');
-      renderGrid();toast('Đã cập nhật!');
-    } else toast('Lỗi: '+r.error,1);
-  } catch(e){toast('Lỗi kết nối!',1);}
-}
-
-// GROUP MODAL
-function openGroupModal(grpNum){
-  const leader=members.find(m=>m.group===GRP[grpNum]);
-  const team=teamMembers.filter(m=>m.group===GRP[grpNum]);
-  const color=GRP_COLOR[grpNum];
-  const light=GRP_LIGHT[grpNum];
-
-  // banner
-  const banner=document.getElementById('gmodal-banner');
-  banner.style.background=`linear-gradient(135deg, ${light}, ${color}22)`;
-
-  // avatar
-  const avatarEl=document.getElementById('gmodal-avatar');
-  if(leader&&leader.avatar_url){
-    avatarEl.innerHTML=`<img src="${leader.avatar_url}" alt="${leader.name}" onerror="this.parentElement.textContent='👤'" />`;
-  } else {
-    avatarEl.textContent='👤';
-    avatarEl.style.background=light;
+function deleteSession(id) {
+  const sSheet = getSheet('sessions');
+  const pSheet = getSheet('participants');
+  const sData = sSheet.getDataRange().getValues();
+  for (let i = 1; i < sData.length; i++) {
+    if (sData[i][0] == id) { sSheet.deleteRow(i + 1); break; }
   }
-
-  // name
-  document.getElementById('gmodal-name').textContent=leader?leader.name:GRP[grpNum];
-
-  // tags
-  const tags=[];
-  if(leader){
-    if(leader.role)tags.push(leader.role);
-    if(leader.year)tags.push(leader.year);
+  const pData = pSheet.getDataRange().getValues();
+  for (let i = pData.length - 1; i >= 1; i--) {
+    if (pData[i][1] == id) pSheet.deleteRow(i + 1);
   }
-  tags.push('Nhóm trưởng');
-  document.getElementById('gmodal-tags').innerHTML=tags.map(t=>`<span class="gmodal-tag">${t}</span>`).join('');
+  return { success: true };
+}
 
-  // research
-  document.getElementById('gmodal-research').textContent=leader&&leader.research?leader.research:'(Chưa cập nhật)';
-
-  // contact
-  document.getElementById('gmodal-contact').textContent=leader&&leader.contact?leader.contact:'(Chưa cập nhật)';
-
-  // team members
-  const membersEl=document.getElementById('gmodal-members');
-  if(!team.length){
-    membersEl.innerHTML='<div class="gm-empty">Chưa có thành viên nào</div>';
-  } else {
-    membersEl.innerHTML=team.map(m=>`
-      <div class="gm-item">
-        <div class="gm-avatar" style="background:${light};color:${color}">${m.name.charAt(0)}</div>
-        <span class="gm-name">${m.name}</span>
-        <span class="gm-tag">${m.role||''} ${m.year||''}</span>
-      </div>`).join('');
+function updateSession(p) {
+  const sheet = getSheet('sessions');
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] == p.id) {
+      if (p.title) sheet.getRange(i+1, 5).setValue(p.title);
+      if (p.content !== undefined) sheet.getRange(i+1, 6).setValue(p.content);
+      if (p.date) sheet.getRange(i+1, 3).setValue(p.date);
+      if (p.slot !== undefined) sheet.getRange(i+1, 4).setValue(p.slot);
+      if (p.group) sheet.getRange(i+1, 2).setValue(p.group);
+      return { success: true };
+    }
   }
-
-  document.getElementById('gmodal-bg').classList.add('show');
+  return { error: 'Not found' };
 }
 
-function closeGroupModal(){document.getElementById('gmodal-bg').classList.remove('show');}
-function gBgClose(e){if(e.target===document.getElementById('gmodal-bg'))closeGroupModal();}
-function bgClose(e){if(e.target===document.getElementById('modal-bg'))closeModal();}
-function closeModal(){document.getElementById('modal-bg').classList.remove('show');activeSession=null;}
-
-function updateStats(){
-  const cnt={1:0,2:0,3:0,4:0};
-  sessions.forEach(s=>{
-    const gn=grpFromSession(s);
-    s.participants.forEach(()=>{if(cnt[gn]!==undefined)cnt[gn]++;});
-  });
-  [1,2,3,4].forEach(i=>document.getElementById('s'+i).textContent=cnt[i]);
+function joinSession(p) {
+  const sheet = getSheet('participants');
+  const data = sheet.getDataRange().getValues().slice(1);
+  if (data.find(r => r[1] == p.session_id && r[2] === p.name)) return { error: 'Bạn đã tham gia ca này rồi!' };
+  const id = Date.now().toString();
+  sheet.appendRow([id, p.session_id, p.name, new Date().toISOString()]);
+  return { success: true, id };
 }
 
-function toast(msg,err=0){
-  const t=document.getElementById('toast');
-  t.textContent=msg;t.className='toast show'+(err?' err':'');
-  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2800);
+function leaveSession(p) {
+  const sheet = getSheet('participants');
+  const data = sheet.getDataRange().getValues();
+  for (let i = data.length - 1; i >= 1; i--) {
+    if (data[i][0] == p.id) { sheet.deleteRow(i + 1); return { success: true }; }
+  }
+  return { error: 'Not found' };
 }
 
-document.getElementById('f-date')&&(document.getElementById('f-date').value=dk(new Date()));
-</script>
-</body>
-</html>
+function getMembers() {
+  const sheet = getSheet('members');
+  const data = sheet.getDataRange().getValues().slice(1).filter(r => r[0] !== '');
+  return data.map(r => ({
+    group: r[0], name: r[1], role: r[2], year: r[3],
+    research: r[4], contact: r[5], avatar_url: r[6]
+  }));
+}
+
+function getTeamMembers() {
+  const sheet = getSheet('team_members');
+  const data = sheet.getDataRange().getValues().slice(1).filter(r => r[0] !== '');
+  return data.map(r => ({
+    group: r[0], name: r[1], role: r[2], year: r[3]
+  }));
+}
+
+function getFund() {
+  const sheet = getSheet('fund');
+  const data = sheet.getDataRange().getValues().slice(1).filter(r => r[0] !== '');
+  return data.map(r => ({
+    id: r[0], type: r[1], amount: r[2], desc: r[3],
+    date: fmtDate(r[4]), created_at: r[5]
+  }));
+}
+
+function addTransaction(p) {
+  const sheet = getSheet('fund');
+  const id = Date.now().toString();
+  sheet.appendRow([id, p.type, +p.amount, p.desc, p.date, new Date().toISOString()]);
+  return { success: true, id };
+}
+
+function deleteTransaction(id) {
+  const sheet = getSheet('fund');
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] == id) { sheet.deleteRow(i + 1); return { success: true }; }
+  }
+  return { error: 'Not found' };
+}
