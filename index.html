@@ -374,6 +374,22 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
       <span class="role-arrow">↗</span>
     </div>
   </div>
+
+  <!-- Ô mật khẩu admin ẩn -->
+  <div style="margin-top:2rem;display:flex;flex-direction:column;align-items:center;gap:6px;">
+    <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--line);letter-spacing:0.1em;text-transform:uppercase;cursor:default;user-select:none;" onclick="document.getElementById('admin-pw-wrap').style.display='flex'">· · ·</div>
+    <div id="admin-pw-wrap" style="display:none;flex-direction:column;align-items:center;gap:8px;">
+      <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);">Mã quản lý</div>
+      <div style="display:flex;gap:8px;">
+        <input id="admin-pw" type="password" maxlength="10" placeholder="••••••"
+          style="padding:8px 14px;border:1.5px solid var(--line);border-radius:8px;font-family:'DM Mono',monospace;font-size:16px;letter-spacing:0.2em;width:130px;outline:none;text-align:center;background:var(--paper);"
+          onkeydown="if(event.key==='Enter')checkAdminPw()" />
+        <button onclick="checkAdminPw()"
+          style="padding:8px 14px;background:var(--ink);color:var(--paper);border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;">→</button>
+      </div>
+      <div id="admin-pw-err" style="font-size:11px;color:var(--g3);display:none;">Mã không đúng</div>
+    </div>
+  </div>
 </div>
 
 <!-- MAIN -->
@@ -658,20 +674,54 @@ async function loadAll(){
   document.getElementById('loading').style.display='none';
 }
 
+function checkAdminPw(){
+  const pw = document.getElementById('admin-pw').value;
+  const err = document.getElementById('admin-pw-err');
+  if(pw === '110399'){
+    err.style.display='none';
+    document.getElementById('admin-pw').value='';
+    document.getElementById('admin-pw-wrap').style.display='none';
+    enterAdmin();
+  } else {
+    err.style.display='block';
+    document.getElementById('admin-pw').value='';
+  }
+}
+
+function enterAdmin(){
+  window._isAdmin = true;
+  role = 'leader';
+  document.getElementById('role-screen').style.display='none';
+  document.getElementById('main').style.display='block';
+  const chip=document.getElementById('role-chip');
+  chip.style.display='block';
+  chip.textContent='🔬 NCS. Tuyền'; chip.className='role-chip leader';
+  document.getElementById('main-tabs').style.display='flex';
+  document.getElementById('leader-form').style.display='block';
+  document.getElementById('fund-form').style.display='block';
+  document.getElementById('paper-add-form').style.display='block';
+  document.getElementById('page-eyebrow').textContent='QUẢN LÝ';
+  document.getElementById('page-sub').textContent='Toàn quyền quản lý lịch lab, quỹ và bài báo';
+  loadAll();
+}
+
 function selectRole(r){
   role=r;
+  window._isAdmin = false;
   document.getElementById('role-screen').style.display='none';
   document.getElementById('main').style.display='block';
   const chip=document.getElementById('role-chip');
   chip.style.display='block';
   document.getElementById('main-tabs').style.display='flex';
+  document.getElementById('fund-form').style.display='none';
+  document.getElementById('paper-add-form').style.display='none';
   if(r==='leader'){
-    chip.textContent='🔬 Trưởng nhóm';chip.className='role-chip leader';
+    chip.textContent='🔬 Trưởng nhóm'; chip.className='role-chip leader';
     document.getElementById('leader-form').style.display='block';
     document.getElementById('page-eyebrow').textContent='TRƯỞNG NHÓM';
     document.getElementById('page-sub').textContent='Tạo ca làm việc và quản lý lịch lab';
   } else {
-    chip.textContent='🧪 Thành viên';chip.className='role-chip member';
+    chip.textContent='🧪 Thành viên'; chip.className='role-chip member';
     document.getElementById('leader-form').style.display='none';
     document.getElementById('page-eyebrow').textContent='THÀNH VIÊN';
     document.getElementById('page-sub').textContent='Bấm vào ca để xem chi tiết và đăng ký tham gia';
