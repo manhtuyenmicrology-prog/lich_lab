@@ -301,6 +301,36 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .stat-bar-fill{height:100%;border-radius:3px;transition:width 0.4s ease;}
 .stat-pct{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);min-width:30px;text-align:right;}
 
+
+/* ANNOUNCEMENTS */
+.ann-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:10px;border:1.5px solid var(--line);}
+.ann-item.urgent{background:#FFF5F5;border-color:#F5C0C0;}
+.ann-item.deadline{background:#FFFBEA;border-color:#F0D88A;}
+.ann-item.info{background:var(--g1l);border-color:var(--g1m);}
+.ann-item.maintenance{background:var(--g3l);border-color:var(--g3m);}
+.ann-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+.ann-body{flex:1;min-width:0;}
+.ann-title{font-size:13px;font-weight:600;line-height:1.3;}
+.ann-text{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4;}
+.ann-deadline{font-family:'DM Mono',monospace;font-size:10px;margin-top:4px;font-weight:600;}
+.ann-deadline.soon{color:var(--g3);}
+.ann-deadline.ok{color:var(--muted);}
+.ann-del{font-size:10px;cursor:pointer;color:var(--muted);padding:2px 6px;border-radius:4px;flex-shrink:0;}
+.ann-del:hover{background:#FFE8E8;color:#C0392B;}
+
+/* QUICK ACTIONS */
+.quick-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.5rem;}
+.qa-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;border:1.5px solid var(--line);border-radius:8px;background:var(--paper);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;color:var(--ink);}
+.qa-btn:hover{background:var(--cream);border-color:var(--ink);}
+.qa-btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+.qa-btn.primary:hover{opacity:0.85;}
+
+/* ANN FORM */
+.ann-form{background:var(--cream);border:1.5px solid var(--line);border-radius:12px;padding:1.25rem;margin-bottom:1.5rem;}
+.ann-type-row{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
+.ann-type-btn{padding:5px 12px;border-radius:20px;border:1.5px solid var(--line);background:transparent;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all 0.15s;color:var(--muted);}
+.ann-type-btn.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+
 @media(max-width:640px){
   .form-row{grid-template-columns:1fr 1fr;}
   .stats{grid-template-columns:1fr 1fr;}
@@ -335,31 +365,6 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
   <h1 class="role-title">Chào mừng đến<br><em>phòng thí nghiệm</em></h1>
   <p class="role-sub">Chọn vai trò của bạn để tiếp tục</p>
 
-  <!-- DASHBOARD WIDGETS -->
-  <div id="welcome-dashboard" style="width:100%;max-width:680px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:2rem;">
-    <!-- Weather -->
-    <div id="weather-widget" style="grid-column:1;background:var(--paper);border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;">
-      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">🌤 Thời tiết · Hà Nội</div>
-      <div id="weather-temp" style="font-family:'DM Serif Display',serif;font-size:28px;line-height:1;">--°C</div>
-      <div id="weather-desc" style="font-size:11px;color:var(--muted);margin-top:3px;">Đang tải...</div>
-      <div id="weather-extra" style="font-size:10px;color:var(--muted);margin-top:6px;font-family:'DM Mono',monospace;"></div>
-    </div>
-    <!-- Reading stats -->
-    <div style="grid-column:2;background:var(--paper);border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;">
-      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">📚 Đọc báo tuần này</div>
-      <div id="ws-reading-num" style="font-family:'DM Serif Display',serif;font-size:28px;line-height:1;">--</div>
-      <div id="ws-reading-sub" style="font-size:11px;color:var(--muted);margin-top:3px;">người đã hoàn thành</div>
-      <div id="ws-reading-bar" style="height:3px;background:var(--line);border-radius:2px;margin-top:8px;overflow:hidden;"><div id="ws-reading-fill" style="height:100%;background:var(--g2);border-radius:2px;width:0%;transition:width 0.5s"></div></div>
-    </div>
-    <!-- Lab stats -->
-    <div style="grid-column:3;background:var(--paper);border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;">
-      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">🔬 Lên lab tuần này</div>
-      <div id="ws-lab-num" style="font-family:'DM Serif Display',serif;font-size:28px;line-height:1;">--</div>
-      <div id="ws-lab-sub" style="font-size:11px;color:var(--muted);margin-top:3px;">lượt đăng ký</div>
-      <div id="ws-lab-bar" style="height:3px;background:var(--line);border-radius:2px;margin-top:8px;overflow:hidden;"><div id="ws-lab-fill" style="height:100%;background:var(--g1);border-radius:2px;width:0%;transition:width 0.5s"></div></div>
-    </div>
-  </div>
-
   <div class="role-cards">
     <div class="role-card r-leader" onclick="selectRole('leader')">
       <span class="role-icon">🔬</span>
@@ -390,6 +395,36 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
       <div id="admin-pw-err" style="font-size:11px;color:var(--g3);display:none;">Mã không đúng</div>
     </div>
   </div>
+
+  <!-- DASHBOARD STRIP -->
+  <div style="width:100%;max-width:480px;margin-top:1.5rem;display:flex;flex-direction:column;gap:10px;">
+
+    <!-- Stats row -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+      <div style="background:var(--cream);border:1px solid var(--line);border-radius:10px;padding:10px 12px;text-align:center;">
+        <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px;">🌤 Hà Nội</div>
+        <div id="weather-temp" style="font-family:'DM Serif Display',serif;font-size:20px;line-height:1;">--</div>
+        <div id="weather-desc" style="font-size:9px;color:var(--muted);margin-top:2px;"></div>
+        <div id="weather-extra" style="font-size:9px;color:var(--muted);margin-top:2px;font-family:'DM Mono',monospace;"></div>
+      </div>
+      <div style="background:var(--cream);border:1px solid var(--line);border-radius:10px;padding:10px 12px;text-align:center;">
+        <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px;">📚 Đọc báo</div>
+        <div id="ws-reading-num" style="font-family:'DM Serif Display',serif;font-size:20px;line-height:1;">--</div>
+        <div id="ws-reading-sub" style="font-size:9px;color:var(--muted);margin-top:2px;">hoàn thành</div>
+        <div style="height:3px;background:var(--line);border-radius:2px;margin-top:6px;overflow:hidden;"><div id="ws-reading-fill" style="height:100%;background:var(--g2);border-radius:2px;width:0%;transition:width 0.6s"></div></div>
+      </div>
+      <div style="background:var(--cream);border:1px solid var(--line);border-radius:10px;padding:10px 12px;text-align:center;">
+        <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px;">🔬 Lên lab</div>
+        <div id="ws-lab-num" style="font-family:'DM Serif Display',serif;font-size:20px;line-height:1;">--</div>
+        <div id="ws-lab-sub" style="font-size:9px;color:var(--muted);margin-top:2px;">lượt tuần này</div>
+        <div style="height:3px;background:var(--line);border-radius:2px;margin-top:6px;overflow:hidden;"><div id="ws-lab-fill" style="height:100%;background:var(--g1);border-radius:2px;width:0%;transition:width 0.6s"></div></div>
+      </div>
+    </div>
+
+    <!-- Announcements -->
+    <div id="ws-announcements" style="display:none;flex-direction:column;gap:6px;"></div>
+
+  </div>
 </div>
 
 <!-- MAIN -->
@@ -410,6 +445,15 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 
   <!-- TAB LỊCH -->
   <div class="tab-content active" id="tab-schedule">
+
+  <!-- QUICK ACTIONS - leader only -->
+  <div class="quick-actions" id="quick-actions" style="display:none">
+    <button class="qa-btn primary" onclick="switchTab('schedule');document.getElementById('leader-form').scrollIntoView({behavior:'smooth'})">+ Tạo ca mới</button>
+    <button class="qa-btn" onclick="switchTab('fund')">💰 Xem quỹ</button>
+    <button class="qa-btn" onclick="switchTab('papers')">📚 Bài báo tuần này</button>
+    <button class="qa-btn" onclick="switchTab('schedule');setWeek(0)">📅 Lịch tuần này</button>
+  </div>
+
   <div class="stats">
     <div class="stat" onclick="openGroupModal(1)">
       <div class="stat-accent" style="background:var(--g1)"></div>
@@ -440,6 +484,27 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
       <div class="stat-click-hint">↗ XEM NHÓM</div>
     </div>
   </div>
+
+
+  <!-- ANNOUNCEMENT FORM - admin only -->
+  <div class="ann-form" id="ann-form" style="display:none">
+    <div class="form-eyebrow">Đăng thông báo</div>
+    <div class="ann-type-row">
+      <button class="ann-type-btn active" onclick="setAnnType('info',this)">ℹ️ Thông tin</button>
+      <button class="ann-type-btn" onclick="setAnnType('urgent',this)">🚨 Khẩn cấp</button>
+      <button class="ann-type-btn" onclick="setAnnType('deadline',this)">⏰ Deadline</button>
+      <button class="ann-type-btn" onclick="setAnnType('maintenance',this)">🔧 Bảo trì</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+      <div class="field"><label>Tiêu đề</label><input type="text" id="ann-title" placeholder="VD: Bảo trì máy li tâm" /></div>
+      <div class="field"><label>Deadline (nếu có)</label><input type="date" id="ann-deadline" /></div>
+    </div>
+    <div class="field" style="margin-bottom:10px"><label>Nội dung</label><textarea id="ann-body" placeholder="Chi tiết thông báo..." style="min-height:56px"></textarea></div>
+    <button class="btn-create" onclick="postAnnouncement()">📢 Đăng thông báo</button>
+  </div>
+
+  <!-- ANNOUNCEMENTS LIST in main -->
+  <div id="ann-list-main" style="margin-bottom:1.5rem;display:none;flex-direction:column;gap:8px;"></div>
 
   <!-- LEADER FORM -->
   <div class="form-card" id="leader-form" style="display:none">
@@ -645,7 +710,7 @@ const GRP_CLS={1:'sc-g1',2:'sc-g2',3:'sc-g3',4:'sc-g4'};
 const GRP_COLOR={1:'var(--g1)',2:'var(--g2)',3:'var(--g3)',4:'var(--g4)'};
 const GRP_LIGHT={1:'var(--g1l)',2:'var(--g2l)',3:'var(--g3l)',4:'var(--g4l)'};
 
-let sessions=[], members=[], teamMembers=[], transactions=[], papers=[], paperResponses=[], currentWeek=0, role=null, activeSession=null;
+let sessions=[], members=[], teamMembers=[], transactions=[], papers=[], paperResponses=[], announcements=[], currentWeek=0, role=null, activeSession=null;
 
 async function api(p){
   const r=await fetch(API+'?'+new URLSearchParams(p).toString());
@@ -655,13 +720,14 @@ async function api(p){
 async function loadAll(){
   document.getElementById('loading').style.display='flex';
   try{
-    const [d,m,tm,f,pp,pr]=await Promise.all([
+    const [d,m,tm,f,pp,pr,an]=await Promise.all([
       api({action:'getSessions'}),
       api({action:'getMembers'}),
       api({action:'getTeamMembers'}),
       api({action:'getFund'}),
       api({action:'getPapers'}),
-      api({action:'getResponses'})
+      api({action:'getResponses'}),
+      api({action:'getAnnouncements'})
     ]);
     sessions=Array.isArray(d)?d:[];
     members=Array.isArray(m)?m:[];
@@ -669,7 +735,10 @@ async function loadAll(){
     transactions=Array.isArray(f)?f:[];
     papers=Array.isArray(pp)?pp:[];
     paperResponses=Array.isArray(pr)?pr:[];
-    updateStats();renderGrid();renderFund();renderPapers();renderPaperStats();if(window.updateWelcomeDash)updateWelcomeDash();
+    announcements=Array.isArray(an)?an:[];
+    updateStats();renderGrid();renderFund();renderPapers();renderPaperStats();
+    renderAnnouncements();
+    if(window.updateWelcomeDash)updateWelcomeDash();
   } catch(e){toast('Lỗi kết nối!',1);}
   document.getElementById('loading').style.display='none';
 }
@@ -718,6 +787,7 @@ function selectRole(r){
   if(r==='leader'){
     chip.textContent='🔬 Trưởng nhóm'; chip.className='role-chip leader';
     document.getElementById('leader-form').style.display='block';
+    document.getElementById('quick-actions').style.display='flex';
     document.getElementById('page-eyebrow').textContent='TRƯỞNG NHÓM';
     document.getElementById('page-sub').textContent='Tạo ca làm việc và quản lý lịch lab';
   } else {
@@ -730,7 +800,9 @@ function selectRole(r){
 }
 
 function switchRole(){
-  role=null;sessions=[];members=[];teamMembers=[];transactions=[];papers=[];paperResponses=[];window._isAdmin=false;
+  role=null;sessions=[];members=[];teamMembers=[];transactions=[];papers=[];paperResponses=[];announcements=[];window._isAdmin=false;
+  document.getElementById('ann-form').style.display='none';
+  document.getElementById('quick-actions').style.display='none';
   document.getElementById('role-screen').style.display='flex';
   document.getElementById('main').style.display='none';
   document.getElementById('role-chip').style.display='none';
@@ -1420,6 +1492,78 @@ function renderPaperStats() {
       </div>`;
     }).join('');
   }
+}
+
+
+// ── ANNOUNCEMENTS ──
+let annType = 'info';
+
+function setAnnType(t, btn) {
+  annType = t;
+  document.querySelectorAll('.ann-type-btn').forEach(b => b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+}
+
+const ANN_ICON = { urgent:'🚨', deadline:'⏰', info:'ℹ️', maintenance:'🔧' };
+const ANN_LABEL = { urgent:'Khẩn cấp', deadline:'Deadline', info:'Thông báo', maintenance:'Bảo trì' };
+
+function renderAnnouncements() {
+  const wsEl = document.getElementById('ws-announcements');
+  const mainEl = document.getElementById('ann-list-main');
+  if (!announcements.length) {
+    if(wsEl) wsEl.style.display='none';
+    if(mainEl) mainEl.style.display='none';
+    return;
+  }
+  const today = new Date(); today.setHours(0,0,0,0);
+  const isAdmin = window._isAdmin === true;
+  const html = announcements.map(function(a) {
+    var deadlineHTML = '';
+    if(a.deadline) {
+      var dl = new Date(a.deadline);
+      var diff = Math.ceil((dl - today) / 86400000);
+      var soon = diff <= 3;
+      var label = diff < 0 ? 'Đã qua hạn' : diff === 0 ? 'Hôm nay!' : diff === 1 ? 'Ngày mai!' : 'Còn ' + diff + ' ngày';
+      deadlineHTML = '<div class="ann-deadline ' + (soon?'soon':'ok') + '">⏰ ' + label + ' · ' + a.deadline + '</div>';
+    }
+    var delBtn = isAdmin ? '<span class="ann-del" onclick="deleteAnn(this)" data-id="' + a.id + '">✕</span>' : '';
+    return '<div class="ann-item ' + (a.type||'info') + '">' +
+      '<span class="ann-icon">' + (ANN_ICON[a.type]||'ℹ️') + '</span>' +
+      '<div class="ann-body">' +
+        '<div class="ann-title">' + a.title + '</div>' +
+        (a.body ? '<div class="ann-text">' + a.body + '</div>' : '') +
+        deadlineHTML +
+      '</div>' + delBtn + '</div>';
+  }).join('');
+  if(wsEl) { wsEl.innerHTML = html; wsEl.style.display='flex'; }
+  if(mainEl) { mainEl.innerHTML = html; mainEl.style.display='flex'; }
+}
+async function postAnnouncement() {
+  const title = document.getElementById('ann-title').value.trim();
+  const body = document.getElementById('ann-body').value.trim();
+  const deadline = document.getElementById('ann-deadline').value;
+  if(!title) { toast('Vui lòng nhập tiêu đề!', 1); return; }
+  try {
+    const r = await api({ action:'addAnnouncement', type:annType, title, body, deadline });
+    if(r.success) {
+      announcements.unshift({ id:r.id, type:annType, title, body, deadline, created_at:new Date().toISOString() });
+      document.getElementById('ann-title').value='';
+      document.getElementById('ann-body').value='';
+      document.getElementById('ann-deadline').value='';
+      renderAnnouncements();
+      toast('Đã đăng thông báo!');
+    } else toast('Lỗi: '+r.error,1);
+  } catch(e) { toast('Lỗi kết nối!',1); }
+}
+
+async function deleteAnn(el) {
+  var id = el.dataset.id;
+  try {
+    await api({ action:'deleteAnnouncement', id });
+    announcements = announcements.filter(a => a.id != id);
+    renderAnnouncements();
+    toast('Đã xóa thông báo.');
+  } catch(e) { toast('Lỗi!',1); }
 }
 
 document.getElementById('f-date')&&(document.getElementById('f-date').value=dk(new Date()));
