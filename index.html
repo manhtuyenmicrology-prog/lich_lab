@@ -920,9 +920,14 @@ function openSession(id){
   document.getElementById('m-content').textContent=s.content||'(Không có mô tả chi tiết)';
   renderPList();
   if(role==='member'){
+    const nameOpts1 = buildNameOptions();
+    const nameOptsHTML1 = nameOpts1.map(p => '<option value="'+p.name+'" data-group="'+p.group+'">'+p.name+' · '+p.group+'</option>').join('');
     document.getElementById('m-actions').innerHTML=`
       <div class="join-row">
-        <input class="join-input" type="text" id="join-name" placeholder="Nhập tên của bạn..." />
+        <select class="join-input" id="join-name" style="flex:1" onchange="syncJoinGroup(this)">
+          <option value="">— Chọn tên của bạn —</option>
+          ${nameOptsHTML1}
+        </select>
         <button class="btn-join" onclick="joinSession()">Tham gia</button>
       </div>`;
   } else {
@@ -970,9 +975,13 @@ function renderPList(){
     </div>`).join('');
 }
 
+function syncJoinGroup(sel) {
+  // auto-sync if needed in future
+}
+
 async function joinSession(){
-  const name=document.getElementById('join-name').value.trim();
-  if(!name){toast('Vui lòng nhập tên!',1);return;}
+  const name=document.getElementById('join-name').value;
+  if(!name){toast('Vui lòng chọn tên!',1);return;}
   try{
     const r=await api({action:'join',session_id:activeSession.id,name});
     if(r.success){
@@ -1090,6 +1099,38 @@ function openGroupModal(grpNum){
 
 function closeGroupModal(){document.getElementById('gmodal-bg').classList.remove('show');}
 function gBgClose(e){if(e.target===document.getElementById('gmodal-bg'))closeGroupModal();}
+
+// Build name dropdown from members + teamMembers
+function buildNameOptions() {
+  const all = [
+    ...members.map(m => ({ name: m.name, group: m.group })),
+    ...teamMembers.map(m => ({ name: m.name, group: m.group }))
+  ];
+  // Remove duplicates
+  const seen = new Set();
+  return all.filter(p => {
+    if(seen.has(p.name)) return false;
+    seen.add(p.name); return true;
+  });
+}
+
+function nameDropdownHTML(id, groupId) {
+  const people = buildNameOptions();
+  const opts = people.map(p =>
+    '<option value="' + p.name + '" data-group="' + p.group + '">' + p.name + ' · ' + p.group + '</option>'
+  ).join('');
+  const baseStyle = 'flex:1;padding:8px 10px;border:1.5px solid var(--line);border-radius:7px;font-family:\'DM Sans\',sans-serif;font-size:13px;background:var(--paper);outline:none;';
+  return '<select id="' + id + '" style="' + baseStyle + '" onchange="syncGroup(this,\'' + (groupId||'') + '\')"><option value="">— Chọn tên —</option>' + opts + '</select>';
+}
+
+function syncGroup(sel, groupId) {
+  if(!groupId) return;
+  const opt = sel.options[sel.selectedIndex];
+  const grp = opt ? opt.dataset.group : '';
+  const grpEl = document.getElementById(groupId);
+  if(grpEl && grp) grpEl.value = grp;
+}
+
 function bgClose(e){if(e.target===document.getElementById('modal-bg'))closeModal();}
 function closeModal(){document.getElementById('modal-bg').classList.remove('show');activeSession=null;}
 
@@ -1281,9 +1322,10 @@ async function postPaper() {
 }
 
 async function submitResponse(paperId) {
-  const name = document.getElementById('resp-name-'+paperId).value.trim();
-  const grp = document.getElementById('resp-group-'+paperId).value;
-  if (!name) { toast('Vui lòng nhập tên!', 1); return; }
+  const name = document.getElementById('resp-name-'+paperId).value;
+  const grpEl = document.getElementById('resp-group-'+paperId);
+  const grp = grpEl ? grpEl.value : '';
+  if (!name) { toast('Vui lòng chọn tên!', 1); return; }
   const paper = papers.find(p => String(p.id) === String(paperId));
   if (!paper) return;
   const qs = typeof paper.questions === 'object' && !Array.isArray(paper.questions) ? paper.questions : { vocab: [], content: paper.questions||[] };
@@ -1413,13 +1455,11 @@ function renderPapers() {
         ${myResp
           ? `<div class="submitted-badge">✓ Bạn đã hoàn thành bài này</div>`
           : `<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px">
-              <input style="flex:1;min-width:120px;padding:8px 10px;border:1.5px solid var(--line);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;" type="text" id="resp-name-${paper.id}" placeholder="Họ tên của bạn..." />
-              <select style="padding:8px 10px;border:1.5px solid var(--line);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--paper);" id="resp-group-${paper.id}">
-                <option value="Nhật Linh">Nhật Linh</option>
-                <option value="Uyên">Uyên</option>
-                <option value="Trang">Trang</option>
-                <option value="NCS. Tuyền">NCS. Tuyền</option>
+              <select style="flex:1;min-width:160px;padding:8px 10px;border:1.5px solid var(--line);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--paper);" id="resp-name-${paper.id}" onchange="(function(sel){var opt=sel.options[sel.selectedIndex];var grpEl=document.getElementById('resp-group-${paper.id}');if(grpEl&&opt)grpEl.value=opt.dataset.group||'';})(this)">
+                <option value="">— Chọn tên —</option>
+                ${buildNameOptions().map(p=>'<option value="'+p.name+'" data-group="'+p.group+'">'+p.name+' · '+p.group+'</option>').join('')}
               </select>
+              <input type="hidden" id="resp-group-${paper.id}" value="" />
               <button class="btn-submit" onclick="submitResponse('${paper.id}')">Nộp bài ✓</button>
             </div>`
         }` : ''}
