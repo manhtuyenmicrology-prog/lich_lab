@@ -506,10 +506,16 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
         <div class="preview-abstract" id="prev-abstract"></div>
       </div>
       <div class="questions-editor" id="questions-editor" style="display:none">
-        <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px;">Câu hỏi kiểm tra (3 câu)</div>
-        <input class="q-input" type="text" id="q1" placeholder="Câu hỏi 1..." />
-        <input class="q-input" type="text" id="q2" placeholder="Câu hỏi 2..." />
-        <input class="q-input" type="text" id="q3" placeholder="Câu hỏi 3..." />
+        <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--g1);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;margin-top:4px;">📝 Nhóm 1 — Từ vựng (5 thuật ngữ quan trọng)</div>
+        <input class="q-input" type="text" id="qv1" placeholder="Thuật ngữ 1 (vd: rosmarinic acid)" />
+        <input class="q-input" type="text" id="qv2" placeholder="Thuật ngữ 2..." />
+        <input class="q-input" type="text" id="qv3" placeholder="Thuật ngữ 3..." />
+        <input class="q-input" type="text" id="qv4" placeholder="Thuật ngữ 4..." />
+        <input class="q-input" type="text" id="qv5" placeholder="Thuật ngữ 5..." />
+        <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--g2);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;margin-top:10px;">🔬 Nhóm 2 — Nội dung (3 câu)</div>
+        <input class="q-input" type="text" id="qc1" placeholder="Câu hỏi về khoảng trống nghiên cứu..." value="Vấn đề gì chưa được giải quyết mà bài báo này hướng đến?" />
+        <input class="q-input" type="text" id="qc2" placeholder="Câu hỏi về mạch nghiên cứu..." value="Tác giả đã thiết kế thí nghiệm theo logic như thế nào để trả lời câu hỏi nghiên cứu?" />
+        <input class="q-input" type="text" id="qc3" placeholder="Câu hỏi về ứng dụng..." value="Kết quả này liên quan đến hướng nghiên cứu của nhóm bạn như thế nào?" />
       </div>
       <button class="btn-create" id="btn-post-paper" onclick="postPaper()" style="display:none">📌 Đăng bài báo tuần này</button>
     </div>
@@ -1095,11 +1101,11 @@ async function fetchPaper() {
 
 async function postPaper() {
   if (!pendingPaper) return;
-  const q1 = document.getElementById('q1').value.trim();
-  const q2 = document.getElementById('q2').value.trim();
-  const q3 = document.getElementById('q3').value.trim();
-  if (!q1||!q2||!q3) { toast('Vui lòng nhập đủ 3 câu hỏi!', 1); return; }
-  const questions = JSON.stringify([q1, q2, q3]);
+  const vocab = ['qv1','qv2','qv3','qv4','qv5'].map(id => document.getElementById(id).value.trim());
+  const content_qs = ['qc1','qc2','qc3'].map(id => document.getElementById(id).value.trim());
+  if (vocab.some(v=>!v)) { toast('Vui lòng nhập đủ 5 thuật ngữ!', 1); return; }
+  if (content_qs.some(q=>!q)) { toast('Vui lòng nhập đủ 3 câu hỏi nội dung!', 1); return; }
+  const questions = JSON.stringify({ vocab, content: content_qs });
   try {
     const r = await api({
       action: 'addPaper',
@@ -1113,9 +1119,10 @@ async function postPaper() {
       document.getElementById('paper-preview').classList.remove('show');
       document.getElementById('questions-editor').style.display = 'none';
       document.getElementById('btn-post-paper').style.display = 'none';
-      document.getElementById('q1').value = '';
-      document.getElementById('q2').value = '';
-      document.getElementById('q3').value = '';
+      ['qv1','qv2','qv3','qv4','qv5'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('qc1').value = 'Vấn đề gì chưa được giải quyết mà bài báo này hướng đến?';
+      document.getElementById('qc2').value = 'Tác giả đã thiết kế thí nghiệm theo logic như thế nào để trả lời câu hỏi nghiên cứu?';
+      document.getElementById('qc3').value = 'Kết quả này liên quan đến hướng nghiên cứu của nhóm bạn như thế nào?';
       renderPapers();
       toast('Đã đăng bài báo tuần này!');
     } else toast('Lỗi: ' + r.error, 1);
@@ -1128,10 +1135,13 @@ async function submitResponse(paperId) {
   if (!name) { toast('Vui lòng nhập tên!', 1); return; }
   const paper = papers.find(p => String(p.id) === String(paperId));
   if (!paper) return;
-  const answers = (paper.questions||[]).map((_,i) => document.getElementById(`resp-a${i}-${paperId}`).value.trim());
-  if (answers.some(a => !a)) { toast('Vui lòng trả lời đủ các câu hỏi!', 1); return; }
+  const qs = typeof paper.questions === 'object' && !Array.isArray(paper.questions) ? paper.questions : { vocab: [], content: paper.questions||[] };
+  const vocabAnswers = (qs.vocab||[]).map((_,i) => (document.getElementById(`resp-v${i}-${paperId}`)||{}).value?.trim()||'');
+  const contentAnswers = (qs.content||[]).map((_,i) => (document.getElementById(`resp-c${i}-${paperId}`)||{}).value?.trim()||'');
+  if (vocabAnswers.some(a=>!a)||contentAnswers.some(a=>!a)) { toast('Vui lòng trả lời đủ tất cả câu hỏi!', 1); return; }
+  const answers = JSON.stringify({ vocab: vocabAnswers, content: contentAnswers });
   try {
-    const r = await api({ action: 'addResponse', paper_id: paperId, name, group: grp, answers: JSON.stringify(answers) });
+    const r = await api({ action: 'addResponse', paper_id: paperId, name, group: grp, answers });
     if (r.success) {
       paperResponses.push({ id: r.id, paper_id: paperId, name, group: grp, answers, submitted_at: new Date().toISOString() });
       renderPapers();
@@ -1139,6 +1149,32 @@ async function submitResponse(paperId) {
       toast('Đã nộp! Cảm ơn bạn đã đọc 📖');
     } else toast(r.error||'Lỗi!', 1);
   } catch(e) { toast('Lỗi kết nối!', 1); }
+}
+
+// MyMemory translation
+async function translateText(text) {
+  try {
+    const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text.slice(0,500))}&langpair=en|vi`);
+    const j = await res.json();
+    return j.responseData?.translatedText || text;
+  } catch(e) { return text; }
+}
+
+async function translateAbstract(paperId) {
+  const absEl = document.getElementById('abs-en-'+paperId);
+  const viEl = document.getElementById('abs-vi-'+paperId);
+  const btn = document.getElementById('btn-translate-'+paperId);
+  if (!absEl || !viEl) return;
+  btn.textContent = '⏳ Đang dịch...'; btn.disabled = true;
+  const text = absEl.textContent;
+  // Split into chunks of 500 chars for MyMemory limit
+  const chunks = [];
+  for (let i = 0; i < text.length; i += 450) chunks.push(text.slice(i, i+450));
+  const translated = await Promise.all(chunks.map(c => translateText(c)));
+  viEl.textContent = translated.join(' ');
+  viEl.style.display = 'block';
+  btn.textContent = '🌐 Đã dịch';
+  btn.disabled = false;
 }
 
 function renderPapers() {
@@ -1152,14 +1188,36 @@ function renderPapers() {
     const myResp = responses.find(r => r.name === (window._myName||''));
     const isAdmin = role === 'leader';
 
-    const questionsHTML = (paper.questions||[]).map((q,i) => `
-      <div class="question-item">
-        <div class="question-text">${i+1}. ${q}</div>
+    // Parse questions
+    let qs = { vocab: [], content: [] };
+    if (paper.questions) {
+      if (typeof paper.questions === 'string') {
+        try { qs = JSON.parse(paper.questions); } catch(e) { qs = { vocab: [], content: paper.questions }; }
+      } else { qs = paper.questions; }
+      if (Array.isArray(qs)) qs = { vocab: [], content: qs };
+    }
+    const myVocabAnswers = myResp ? (typeof myResp.answers === 'string' ? JSON.parse(myResp.answers||'{}') : myResp.answers)?.vocab||[] : [];
+    const myContentAnswers = myResp ? (typeof myResp.answers === 'string' ? JSON.parse(myResp.answers||'{}') : myResp.answers)?.content||[] : [];
+
+    const vocabHTML = (qs.vocab||[]).map((term,i) => `
+      <div class="question-item" style="border-left:3px solid var(--g1);">
+        <div class="question-text" style="color:var(--g1)">📖 ${term}</div>
         ${myResp
-          ? `<div style="font-size:13px;color:var(--g2);padding:6px 0">✓ ${myResp.answers[i]||'(Đã trả lời)'}</div>`
-          : `<textarea class="question-input" id="resp-a${i}-${paper.id}" placeholder="Câu trả lời của bạn..." rows="2"></textarea>`
+          ? `<div style="font-size:13px;color:var(--g2);padding:4px 0">✓ ${myVocabAnswers[i]||'(Đã trả lời)'}</div>`
+          : `<textarea class="question-input" id="resp-v${i}-${paper.id}" placeholder="Giải thích thuật ngữ này bằng lời của bạn..." rows="2"></textarea>`
+        }`).join('</div>') + (qs.vocab?.length ? '</div>' : '');
+
+    const contentHTML = (qs.content||[]).map((q,i) => {
+      const labels = ['🔍 Khoảng trống nghiên cứu','🔬 Mạch nghiên cứu','💡 Ứng dụng'];
+      return `<div class="question-item" style="border-left:3px solid var(--g2);">
+        <div class="question-text" style="color:var(--g2)">${labels[i]||''}</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px">${q}</div>
+        ${myResp
+          ? `<div style="font-size:13px;color:var(--g2);padding:4px 0">✓ ${myContentAnswers[i]||'(Đã trả lời)'}</div>`
+          : `<textarea class="question-input" id="resp-c${i}-${paper.id}" placeholder="Câu trả lời của bạn..." rows="3"></textarea>`
         }
-      </div>`).join('');
+      </div>`;
+    }).join('');
 
     return `<div class="paper-card">
       <div class="paper-week">📅 Tuần ${paper.week} · ${paper.created_at ? paper.created_at.slice(0,10) : ''}</div>
@@ -1168,18 +1226,42 @@ function renderPapers() {
         <span>✍️ ${paper.authors||'—'}</span>
         <span>📰 ${paper.journal||'—'}</span>
       </div>
-      ${paper.abstract ? `<div class="paper-abstract" id="abs-${paper.id}">${paper.abstract}</div>
-      <button onclick="toggleAbs('${paper.id}')" style="font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;margin-bottom:8px;font-family:'DM Mono',monospace;">▼ Xem thêm</button>` : ''}
-      ${paper.url ? `<div><a class="paper-link" href="${paper.url}" target="_blank">🔗 Đọc bài báo gốc</a></div>` : ''}
+
+      ${paper.abstract ? `
+      <div style="margin-bottom:8px">
+        <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">
+          <span>Abstract</span>
+          <button id="btn-translate-${paper.id}" onclick="translateAbstract('${paper.id}')" style="font-size:10px;padding:3px 10px;border:1px solid var(--g2m);border-radius:5px;background:var(--g2l);color:var(--g2);cursor:pointer;font-family:'DM Mono',monospace;">🌐 Dịch tiếng Việt</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);margin-bottom:4px">EN</div>
+            <div class="paper-abstract" id="abs-en-${paper.id}" style="display:block;-webkit-line-clamp:unset">${paper.abstract}</div>
+          </div>
+          <div>
+            <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);margin-bottom:4px">VI</div>
+            <div class="paper-abstract" id="abs-vi-${paper.id}" style="display:none;background:var(--g2l);border-color:var(--g2m)">(Bấm nút dịch để xem bản tiếng Việt)</div>
+          </div>
+        </div>
+      </div>` : ''}
+
+      ${paper.url ? `<div style="margin-bottom:12px"><a class="paper-link" href="${paper.url}" target="_blank">🔗 Đọc bài báo gốc</a></div>` : ''}
+
       <div class="paper-progress">
-        <div class="progress-label"><span>Đã đọc</span><span>${responses.length}/${totalMembers} người (${pct}%)</span></div>
+        <div class="progress-label"><span>Hoàn thành</span><span>${responses.length}/${totalMembers} người (${pct}%)</span></div>
         <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
       </div>
-      ${paper.questions && paper.questions.length ? `
-        <div class="paper-questions">${questionsHTML}</div>
+
+      ${qs.vocab?.length || qs.content?.length ? `
+        ${qs.vocab?.length ? `
+          <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--g1);letter-spacing:0.1em;text-transform:uppercase;margin:12px 0 8px">📝 Nhóm 1 — Từ vựng</div>
+          <div class="paper-questions">${vocabHTML}</div>` : ''}
+        ${qs.content?.length ? `
+          <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--g2);letter-spacing:0.1em;text-transform:uppercase;margin:12px 0 8px">🔬 Nhóm 2 — Nội dung</div>
+          <div class="paper-questions">${contentHTML}</div>` : ''}
         ${myResp
           ? `<div class="submitted-badge">✓ Bạn đã hoàn thành bài này</div>`
-          : `<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          : `<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px">
               <input style="flex:1;min-width:120px;padding:8px 10px;border:1.5px solid var(--line);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;" type="text" id="resp-name-${paper.id}" placeholder="Họ tên của bạn..." />
               <select style="padding:8px 10px;border:1.5px solid var(--line);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--paper);" id="resp-group-${paper.id}">
                 <option value="Nhật Linh">Nhật Linh</option>
@@ -1190,7 +1272,7 @@ function renderPapers() {
               <button class="btn-submit" onclick="submitResponse('${paper.id}')">Nộp bài ✓</button>
             </div>`
         }` : ''}
-      ${isAdmin ? `<div style="margin-top:10px"><button onclick="deletePaper('${paper.id}')" style="font-size:11px;color:var(--g3);background:none;border:none;cursor:pointer;font-family:'DM Mono',monospace;">🗑 Xóa bài này</button></div>` : ''}
+      ${isAdmin ? `<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line)"><button onclick="deletePaper('${paper.id}')" style="font-size:11px;color:var(--g3);background:none;border:none;cursor:pointer;font-family:'DM Mono',monospace;">🗑 Xóa bài này</button></div>` : ''}
     </div>`;
   }).join('');
 }
