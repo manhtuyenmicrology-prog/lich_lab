@@ -305,6 +305,7 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
   .form-row{grid-template-columns:1fr 1fr;}
   .stats{grid-template-columns:1fr 1fr;}
   .role-cards{grid-template-columns:1fr;max-width:280px;}
+  #welcome-dashboard{grid-template-columns:1fr!important;}
   .main{padding:1.5rem 1rem;}
   .fund-form-row{grid-template-columns:1fr 1fr;}
   .fund-summary{grid-template-columns:1fr;}
@@ -329,8 +330,36 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 <!-- ROLE SCREEN -->
 <div class="role-screen" id="role-screen">
   <div class="role-eyebrow">Microbiology Lab · 2026</div>
+  <div id="clock" style="font-family:'DM Serif Display',serif;font-size:clamp(36px,8vw,64px);letter-spacing:-0.03em;line-height:1;margin-bottom:4px;color:var(--ink)"></div>
+  <div id="dateline" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:2rem"></div>
   <h1 class="role-title">Chào mừng đến<br><em>phòng thí nghiệm</em></h1>
   <p class="role-sub">Chọn vai trò của bạn để tiếp tục</p>
+
+  <!-- DASHBOARD WIDGETS -->
+  <div id="welcome-dashboard" style="width:100%;max-width:680px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:2rem;">
+    <!-- Weather -->
+    <div id="weather-widget" style="grid-column:1;background:var(--paper);border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;">
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">🌤 Thời tiết · Hà Nội</div>
+      <div id="weather-temp" style="font-family:'DM Serif Display',serif;font-size:28px;line-height:1;">--°C</div>
+      <div id="weather-desc" style="font-size:11px;color:var(--muted);margin-top:3px;">Đang tải...</div>
+      <div id="weather-extra" style="font-size:10px;color:var(--muted);margin-top:6px;font-family:'DM Mono',monospace;"></div>
+    </div>
+    <!-- Reading stats -->
+    <div style="grid-column:2;background:var(--paper);border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;">
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">📚 Đọc báo tuần này</div>
+      <div id="ws-reading-num" style="font-family:'DM Serif Display',serif;font-size:28px;line-height:1;">--</div>
+      <div id="ws-reading-sub" style="font-size:11px;color:var(--muted);margin-top:3px;">người đã hoàn thành</div>
+      <div id="ws-reading-bar" style="height:3px;background:var(--line);border-radius:2px;margin-top:8px;overflow:hidden;"><div id="ws-reading-fill" style="height:100%;background:var(--g2);border-radius:2px;width:0%;transition:width 0.5s"></div></div>
+    </div>
+    <!-- Lab stats -->
+    <div style="grid-column:3;background:var(--paper);border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;">
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">🔬 Lên lab tuần này</div>
+      <div id="ws-lab-num" style="font-family:'DM Serif Display',serif;font-size:28px;line-height:1;">--</div>
+      <div id="ws-lab-sub" style="font-size:11px;color:var(--muted);margin-top:3px;">lượt đăng ký</div>
+      <div id="ws-lab-bar" style="height:3px;background:var(--line);border-radius:2px;margin-top:8px;overflow:hidden;"><div id="ws-lab-fill" style="height:100%;background:var(--g1);border-radius:2px;width:0%;transition:width 0.5s"></div></div>
+    </div>
+  </div>
+
   <div class="role-cards">
     <div class="role-card r-leader" onclick="selectRole('leader')">
       <span class="role-icon">🔬</span>
@@ -624,7 +653,7 @@ async function loadAll(){
     transactions=Array.isArray(f)?f:[];
     papers=Array.isArray(pp)?pp:[];
     paperResponses=Array.isArray(pr)?pr:[];
-    updateStats();renderGrid();renderFund();renderPapers();renderPaperStats();
+    updateStats();renderGrid();renderFund();renderPapers();renderPaperStats();if(window.updateWelcomeDash)updateWelcomeDash();
   } catch(e){toast('Lỗi kết nối!',1);}
   document.getElementById('loading').style.display='none';
 }
@@ -639,15 +668,11 @@ function selectRole(r){
   if(r==='leader'){
     chip.textContent='🔬 Trưởng nhóm';chip.className='role-chip leader';
     document.getElementById('leader-form').style.display='block';
-    document.getElementById('fund-form').style.display='block';
-    document.getElementById('paper-add-form').style.display='block';
     document.getElementById('page-eyebrow').textContent='TRƯỞNG NHÓM';
     document.getElementById('page-sub').textContent='Tạo ca làm việc và quản lý lịch lab';
   } else {
     chip.textContent='🧪 Thành viên';chip.className='role-chip member';
     document.getElementById('leader-form').style.display='none';
-    document.getElementById('fund-form').style.display='none';
-    document.getElementById('paper-add-form').style.display='none';
     document.getElementById('page-eyebrow').textContent='THÀNH VIÊN';
     document.getElementById('page-sub').textContent='Bấm vào ca để xem chi tiết và đăng ký tham gia';
   }
@@ -655,7 +680,7 @@ function selectRole(r){
 }
 
 function switchRole(){
-  role=null;sessions=[];members=[];teamMembers=[];transactions=[];papers=[];paperResponses=[];
+  role=null;sessions=[];members=[];teamMembers=[];transactions=[];papers=[];paperResponses=[];window._isAdmin=false;
   document.getElementById('role-screen').style.display='flex';
   document.getElementById('main').style.display='none';
   document.getElementById('role-chip').style.display='none';
@@ -670,8 +695,12 @@ async function createSession(){
   const content=document.getElementById('f-content').value.trim();
   if(!date){toast('Vui lòng chọn ngày!',1);return;}
   if(!title){toast('Vui lòng nhập tiêu đề!',1);return;}
-  const today=new Date();today.setHours(0,0,0,0);
-  if(new Date(date)<today){toast('Không thể tạo ca cho ngày đã qua!',1);return;}
+  const now=new Date();
+  const slotEndHours=[12,18,22];
+  const selSlot=+slot;
+  const isToday=date===dk(now);
+  if(new Date(date)<new Date(dk(now))){toast('Không thể tạo ca cho ngày đã qua!',1);return;}
+  if(isToday && now.getHours()>=slotEndHours[selSlot]){toast('Ca này đã kết thúc hôm nay!',1);return;}
   const btn=document.getElementById('btn-create');
   btn.disabled=true;btn.textContent='Đang lưu...';
   try{
@@ -992,7 +1021,7 @@ function renderFund() {
   document.getElementById('fund-income').textContent = fmtMoney(income);
   document.getElementById('fund-expense').textContent = fmtMoney(expense);
 
-  const isAdmin = role === 'leader';
+  const isAdmin = window._isAdmin === true;
   const list = document.getElementById('tx-list');
   if (!transactions.length) {
     list.innerHTML = '<div class="tx-empty">Chưa có giao dịch nào</div>'; return;
@@ -1186,7 +1215,7 @@ function renderPapers() {
     const responses = paperResponses.filter(r => String(r.paper_id) === String(paper.id));
     const pct = totalMembers > 0 ? Math.round(responses.length / totalMembers * 100) : 0;
     const myResp = responses.find(r => r.name === (window._myName||''));
-    const isAdmin = role === 'leader';
+    const isAdmin = window._isAdmin === true;
 
     // Parse questions
     let qs = { vocab: [], content: [] };
@@ -1345,6 +1374,78 @@ function renderPaperStats() {
 
 document.getElementById('f-date')&&(document.getElementById('f-date').value=dk(new Date()));
 document.getElementById('tx-date')&&(document.getElementById('tx-date').value=dk(new Date()));
+</script>
+
+<script>
+(function(){
+  var DAYS=["Chủ nhật","Thứ hai","Thứ ba","Thứ tư","Thứ năm","Thứ sáu","Thứ bảy"];
+  var MONTHS=["tháng 1","tháng 2","tháng 3","tháng 4","tháng 5","tháng 6","tháng 7","tháng 8","tháng 9","tháng 10","tháng 11","tháng 12"];
+  function tick(){
+    var now=new Date();
+    var h=String(now.getHours()).padStart(2,"0");
+    var m=String(now.getMinutes()).padStart(2,"0");
+    var s=String(now.getSeconds()).padStart(2,"0");
+    var c=document.getElementById("clock");
+    var d=document.getElementById("dateline");
+    if(c) c.textContent=h+":"+m+":"+s;
+    if(d) d.textContent=DAYS[now.getDay()]+", "+now.getDate()+" "+MONTHS[now.getMonth()]+" "+now.getFullYear();
+  }
+  tick(); setInterval(tick,1000);
+
+  // Weather - Open-Meteo (Hanoi: 21.0245, 105.8412)
+  var WMO = {0:"Trời quang",1:"Ít mây",2:"Có mây",3:"Nhiều mây",45:"Sương mù",48:"Sương mù",51:"Mưa phùn",53:"Mưa phùn",55:"Mưa phùn",61:"Mưa nhẹ",63:"Mưa vừa",65:"Mưa to",80:"Mưa rào",81:"Mưa rào",82:"Mưa rào to",95:"Giông",99:"Giông có mưa đá"};
+  var WI = {0:"☀️",1:"🌤",2:"⛅",3:"☁️",45:"🌫",48:"🌫",51:"🌦",53:"🌦",55:"🌧",61:"🌧",63:"🌧",65:"🌧",80:"🌦",81:"🌧",82:"⛈",95:"⛈",99:"⛈"};
+  fetch("https://api.open-meteo.com/v1/forecast?latitude=21.0245&longitude=105.8412&current=temperature_2m,relative_humidity_2m,weathercode,windspeed_10m&timezone=Asia/Bangkok")
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var c=d.current;
+      var code=c.weathercode;
+      var el=document.getElementById("weather-temp");
+      var desc=document.getElementById("weather-desc");
+      var extra=document.getElementById("weather-extra");
+      if(el) el.textContent=(WI[code]||"🌡")+" "+Math.round(c.temperature_2m)+"°C";
+      if(desc) desc.textContent=WMO[code]||"--";
+      if(extra) extra.textContent="💧 "+c.relative_humidity_2m+"% · 💨 "+Math.round(c.windspeed_10m)+"km/h";
+    }).catch(function(){});
+
+  // Welcome dashboard stats (load from API)
+  function updateWelcomeDash() {
+    // Reading stats
+    if(window.papers && window.papers.length && window.paperResponses) {
+      var latest=papers[0];
+      var resps=paperResponses.filter(function(r){return String(r.paper_id)===String(latest.id);});
+      var total=(window.members||[]).length+(window.teamMembers||[]).length;
+      var pct=total>0?Math.round(resps.length/total*100):0;
+      var rn=document.getElementById("ws-reading-num");
+      var rf=document.getElementById("ws-reading-fill");
+      var rs=document.getElementById("ws-reading-sub");
+      if(rn) rn.textContent=resps.length+(total>0?"/"+total:"");
+      if(rf) rf.style.width=pct+"%";
+      if(rs) rs.textContent="người hoàn thành ("+pct+"%)";
+    }
+    // Lab stats this week
+    if(window.sessions) {
+      var now2=new Date(); now2.setHours(0,0,0,0);
+      var day=now2.getDay()||7;
+      var mon=new Date(now2); mon.setDate(now2.getDate()-day+1);
+      var sun=new Date(mon); sun.setDate(mon.getDate()+6);
+      var wkSessions=sessions.filter(function(s){
+        var d=new Date(s.date); return d>=mon&&d<=sun;
+      });
+      var totalSlots=wkSessions.reduce(function(acc,s){return acc+s.participants.length;},0);
+      var maxSlots=wkSessions.length*((window.members||[]).length+(window.teamMembers||[]).length);
+      var pct2=maxSlots>0?Math.round(totalSlots/maxSlots*100):0;
+      var ln=document.getElementById("ws-lab-num");
+      var lf=document.getElementById("ws-lab-fill");
+      var ls=document.getElementById("ws-lab-sub");
+      if(ln) ln.textContent=totalSlots;
+      if(lf) lf.style.width=Math.min(pct2,100)+"%";
+      if(ls) ls.textContent="lượt · "+wkSessions.length+" ca tuần này";
+    }
+  }
+  window.updateWelcomeDash = updateWelcomeDash;
+  setInterval(updateWelcomeDash, 3000);
+})();
 </script>
 </body>
 </html>
