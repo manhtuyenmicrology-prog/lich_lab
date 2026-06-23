@@ -738,6 +738,9 @@ async function loadAll(){
     announcements=Array.isArray(an)?an:[];
     updateStats();renderGrid();renderFund();renderPapers();renderPaperStats();
     renderAnnouncements();
+    // Expose to window for welcome dashboard
+    window.sessions=sessions; window.members=members; window.teamMembers=teamMembers;
+    window.papers=papers; window.paperResponses=paperResponses;
     if(window.updateWelcomeDash)updateWelcomeDash();
   } catch(e){toast('Lỗi kết nối!',1);}
   document.getElementById('loading').style.display='none';
@@ -1645,10 +1648,13 @@ document.getElementById('tx-date')&&(document.getElementById('tx-date').value=dk
   // Welcome dashboard stats (load from API)
   function updateWelcomeDash() {
     // Reading stats
-    if(window.papers && window.papers.length && window.paperResponses) {
-      var latest=papers[0];
-      var resps=paperResponses.filter(function(r){return String(r.paper_id)===String(latest.id);});
-      var total=(window.members||[]).length+(window.teamMembers||[]).length;
+    var _papers=window.papers||[], _responses=window.paperResponses||[];
+    var _members=window.members||[], _team=window.teamMembers||[];
+    var _sessions=window.sessions||[];
+    if(_papers.length) {
+      var latest=_papers[0];
+      var resps=_responses.filter(function(r){return String(r.paper_id)===String(latest.id);});
+      var total=_members.length+_team.length;
       var pct=total>0?Math.round(resps.length/total*100):0;
       var rn=document.getElementById("ws-reading-num");
       var rf=document.getElementById("ws-reading-fill");
@@ -1658,16 +1664,16 @@ document.getElementById('tx-date')&&(document.getElementById('tx-date').value=dk
       if(rs) rs.textContent="người hoàn thành ("+pct+"%)";
     }
     // Lab stats this week
-    if(window.sessions) {
+    if(_sessions.length >= 0) {
       var now2=new Date(); now2.setHours(0,0,0,0);
       var day=now2.getDay()||7;
       var mon=new Date(now2); mon.setDate(now2.getDate()-day+1);
       var sun=new Date(mon); sun.setDate(mon.getDate()+6);
-      var wkSessions=sessions.filter(function(s){
+      var wkSessions=_sessions.filter(function(s){
         var d=new Date(s.date); return d>=mon&&d<=sun;
       });
       var totalSlots=wkSessions.reduce(function(acc,s){return acc+s.participants.length;},0);
-      var maxSlots=wkSessions.length*((window.members||[]).length+(window.teamMembers||[]).length);
+      var maxSlots=wkSessions.length*(_members.length+_team.length);
       var pct2=maxSlots>0?Math.round(totalSlots/maxSlots*100):0;
       var ln=document.getElementById("ws-lab-num");
       var lf=document.getElementById("ws-lab-fill");
